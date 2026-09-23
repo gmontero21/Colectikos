@@ -64,7 +64,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
   // -- Origen (Residente vs Visitante) --
   let residents = 0;
   let visitors = 0;
-  locationData.forEach(d => {
+  locationData.forEach((d: any) => {
     if (d.provinciaResidencia) {
       if (CR_PROVINCES.includes(d.provinciaResidencia)) residents += d._count.id;
       else visitors += d._count.id;
