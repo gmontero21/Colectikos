@@ -95,7 +95,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
       include: { ratings: { select: { score: true } } }
     });
     avgRatings = placesWithRatings.map(place => {
-      const totalScore = place.ratings.reduce((acc: number, curr: any) => ...
+      const totalScore = place.ratings.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const avg = place.ratings.length > 0 ? totalScore / place.ratings.length : 0;
       return { name: place.nombre, avg: Number(avg.toFixed(1)), count: place.ratings.length };
     }).filter(p => p.count > 0).sort((a, b) => b.avg - a.avg).slice(0, 5);
