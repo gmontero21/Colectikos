@@ -63,7 +63,7 @@ export async function getAllCommunityRatings(): Promise<Record<string, number>> 
       'HEREDIA': '4', 'PUNTARENAS': '5', 'LIMON': '6', 'GUANACASTE': '7'
     };
 
-    allRatings.forEach(r => {
+    allRatings.forEach((r: any) => {
       // Agrupar por lugar específico
       if (!sumMap[r.placeId]) sumMap[r.placeId] = { sum: 0, count: 0 };
       sumMap[r.placeId].sum += r.score;
