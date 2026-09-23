@@ -44,7 +44,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
 
   // -- Edades --
   const agePercentages: Record<string, number> = { "18-25": 0, "26-35": 0, "36-45": 0, "46-55": 0, "56+": 0, "<18": 0 };
-  ageData.forEach(d => { if (d.rangoEdad) agePercentages[d.rangoEdad] = Math.round((d._count.id / totalAges) * 100); });
+  ageData.forEach((d: any) => { if (d.rangoEdad) agePercentages[d.rangoEdad] = Math.round((d._count.id / totalAges) * 100); });
   if (totalUsersWithAge === 0) { agePercentages["26-35"] = 45; agePercentages["18-25"] = 30; agePercentages["36-45"] = 25; }
   
   const p1 = agePercentages["26-35"];
