@@ -1,0 +1,48 @@
+{
+  "name": "next-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_OPTIONS='--max_old_space_size=8192' next dev --webpack",
+    "build": "NODE_OPTIONS='--max_old_space_size=8192' next build",
+    "start": "NODE_OPTIONS='--max_old_space_size=8192' next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.9.4",
+    "@formatjs/intl-localematcher": "^0.8.13",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.9.1",
+    "@types/nodemailer": "^8.0.1",
+    "canvas-confetti": "^1.9.4",
+    "framer-motion": "^12.43.0",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "^1.27.0",
+    "negotiator": "^1.0.0",
+    "next": "16.2.12",
+    "nodemailer": "^10.0.1",
+    "pg": "^8.23.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-hot-toast": "^2.6.0",
+    "react-simple-maps": "^3.0.0",
+    "react-tooltip": "^6.0.8",
+    "sonner": "^2.0.8",
+    "vaul": "^1.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/negotiator": "^0.6.4",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-simple-maps": "^3.0.6",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "prisma": "^7.9.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
