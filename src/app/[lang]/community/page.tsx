@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Suspense } from 'react';
 import CommunityClient from '@/components/CommunityClient';
-import { CommunityPost } from '@prisma/client';
+//import { CommunityPost } from '@prisma/client';
 import { getDictionary } from '@/dictionaries/getDictionary';
 
 // Forzar renderizado dinámico para que los datos nuevos aparezcan inmediatamente (opcional pero recomendado para el feed)
@@ -28,7 +28,7 @@ export default async function CommunityPage({ params }: { params: Promise<{ lang
 }
 
 async function CommunityGrid() {
-    let posts: CommunityPost[];
+    let posts: any[];
     try {
         posts = await prisma.communityPost.findMany({
             orderBy: {
