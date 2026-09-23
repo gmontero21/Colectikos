@@ -94,7 +94,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
     const placesWithRatings = await prisma.lugar.findMany({
       include: { ratings: { select: { score: true } } }
     });
-    avgRatings = placesWithRatings.map(place => {
+    avgRatings = placesWithRatings.map((place: any) => {
       const totalScore = place.ratings.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const avg = place.ratings.length > 0 ? totalScore / place.ratings.length : 0;
       return { name: place.nombre, avg: Number(avg.toFixed(1)), count: place.ratings.length };
