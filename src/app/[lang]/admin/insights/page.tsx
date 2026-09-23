@@ -98,7 +98,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
       const totalScore = place.ratings.reduce((acc: number, curr: any) => acc + curr.score, 0);
       const avg = place.ratings.length > 0 ? totalScore / place.ratings.length : 0;
       return { name: place.nombre, avg: Number(avg.toFixed(1)), count: place.ratings.length };
-    }).filter(p => p.count > 0).sort((a, b) => b.avg - a.avg).slice(0, 5);
+   }).filter((p: any) => p.count > 0).sort((a: any, b: any) => b.avg - a.avg).slice(0, 5);
   } catch (error) {
     console.log("No se pudo obtener las calificaciones (la tabla puede no existir o no hay conexión):", error);
   }
