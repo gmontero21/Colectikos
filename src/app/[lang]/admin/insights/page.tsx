@@ -55,7 +55,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
 
   // -- Preferencias --
   const prefMap: Record<string, number> = {};
-  prefData.forEach(d => { if (d.tipoLugarPreferido) prefMap[d.tipoLugarPreferido] = Math.round((d._count.id / totalPrefs) * 100); });
+  prefData.forEach((d: any) => { if (d.tipoLugarPreferido) prefMap[d.tipoLugarPreferido] = Math.round((d._count.id / totalPrefs) * 100); });
   const playa = totalUsersWithPref > 0 ? (prefMap['Playas'] || 0) : 38;
   const montana = totalUsersWithPref > 0 ? (prefMap['Volcanes'] || 0) : 32;
   const aventura = totalUsersWithPref > 0 ? ((prefMap['Ríos'] || 0) + (prefMap['Bosques y Reservas'] || 0)) : 18;
