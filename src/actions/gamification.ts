@@ -94,7 +94,7 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
     const userId = dbUser.id;
 
     // 2. Ejecutar Transacción Segura
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Garantizar que el Lugar exista en la base de datos (Lazy Seed) para evitar error P2003
       const existingLugar = await tx.lugar.findUnique({ where: { id: lugarId } });
       if (!existingLugar) {
@@ -230,7 +230,7 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
 
     const userId = dbUser.id;
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Lazy Seed para lugarId por si acaso no existe (integridad referencial)
       const existingLugar = await tx.lugar.findUnique({ where: { id: lugarId } });
       if (!existingLugar) {
@@ -357,7 +357,7 @@ export async function recordDailyLogin(localUsername?: string) {
       }
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (!user) throw new Error("Usuario no encontrado");
 
