@@ -6,10 +6,10 @@ import CommunityPlaceCard from './CommunityPlaceCard';
 import { mockLugares } from '../data/mockData';
 import { mapLugaresByLocale, getProvincesForLugar } from '../utils/getLugares';
 import { useDictionary } from '../context/DictionaryContext';
-import { CommunityPost } from '@prisma/client';
+//import { CommunityPost } from '@prisma/client';
 
 interface CommunityClientProps {
-  posts: CommunityPost[];
+  posts: any[];
 }
 
 export default function CommunityClient({ posts }: CommunityClientProps) {

@@ -2,13 +2,13 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { CommunityPost } from '@prisma/client';
+//import { CommunityPost } from '@prisma/client';
 import { MapPin, Image as ImageIcon } from 'lucide-react';
 import { Lugar } from '../data/mockData';
 
 interface CommunityPlaceCardProps {
   lugar: Lugar;
-  post?: CommunityPost | null;
+  post?: any | null;
   rotationClass?: string;
   nameToUse: string;
   index: number;
