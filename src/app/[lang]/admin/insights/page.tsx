@@ -75,17 +75,17 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
 
   // -- Estilo de Viaje --
   const styleMap: Record<string, number> = {};
-  styleData.forEach(d => { if (d.estiloViaje) styleMap[d.estiloViaje] = d._count.id; });
+  styleData.forEach((d: any) => { if (d.estiloViaje) styleMap[d.estiloViaje] = d._count.id; });
   const getStylePct = (k: string) => totalUsersWithStyle > 0 ? Math.round(((styleMap[k] || 0) / totalUsersWithStyle) * 100) : 25;
 
   // -- Compañía Habitual --
   const compMap: Record<string, number> = {};
-  companyData.forEach(d => { if (d.companiaHabitual) compMap[d.companiaHabitual] = d._count.id; });
+  companyData.forEach((d: any) => { if (d.companiaHabitual) compMap[d.companiaHabitual] = d._count.id; });
   const getCompPct = (k: string) => totalUsersWithCompany > 0 ? Math.round(((compMap[k] || 0) / totalUsersWithCompany) * 100) : 25;
 
   // -- Código de Honor (PlayMode) --
   const playModeMap: Record<string, number> = {};
-  playModeData.forEach(d => { if (d.playMode) playModeMap[d.playMode] = d._count.id; });
+  playModeData.forEach((d: any) => { if (d.playMode) playModeMap[d.playMode] = d._count.id; });
   const getPlayPct = (k: string) => totalUsersWithPlayMode > 0 ? Math.round(((playModeMap[k] || 0) / totalUsersWithPlayMode) * 100) : 33;
 
   // -- Calificaciones (Ratings) --
