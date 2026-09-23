@@ -26,7 +26,7 @@ export async function getCommunityRating(placeId: string, isProvincia: boolean) 
 
       if (ratings.length === 0) return null;
 
-      const avg = ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length;
+      const avg = ratings.reduce((acc: number, curr: any) => acc + curr.score, 0) / ratings.length;
       return Number(avg.toFixed(1));
     } else {
       // Calificación de un lugar específico
@@ -37,7 +37,7 @@ export async function getCommunityRating(placeId: string, isProvincia: boolean) 
 
       if (ratings.length === 0) return null;
 
-      const avg = ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length;
+      const avg = ratings.reduce((acc: number, curr: any) => acc + curr.score, 0) / ratings.length;
       return Number(avg.toFixed(1));
     }
   } catch (error) {
