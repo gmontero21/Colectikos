@@ -218,7 +218,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-2">
-              {locationData.slice(0, 6).map((loc, i) => (
+              {locationData.slice(0, 6).map((loc: any, i: any) => (
                 <div key={i} className="flex justify-between items-center text-sm p-2 bg-stone-50 rounded-xl border border-stone-100">
                   <span className="text-stone-600 font-medium truncate">{loc.provinciaResidencia || 'Desconocido'}</span>
                   <span className="font-bold text-stone-800">{loc._count.id}</span>
