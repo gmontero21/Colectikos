@@ -316,7 +316,7 @@ export default async function DemografiaInsights({ searchParams }: PageProps) {
             </div>
             
             <div className="flex flex-wrap justify-center items-center gap-4 py-8 px-4 flex-1 bg-stone-50 rounded-2xl border border-stone-100 shadow-inner">
-              {placeData.length > 0 ? placeData.map((place, idx) => {
+              {placeData.length > 0 ? placeData.map((place: any, idx: any) => {
                 const ratio = place._count.id / maxPlaceCount;
                 const size = 0.8 + (ratio * 1.7);
                 const colors = ['text-emerald-600', 'text-blue-500', 'text-amber-500', 'text-rose-500', 'text-indigo-500', 'text-cyan-600', 'text-fuchsia-600'];
