@@ -6,7 +6,9 @@
     "dev": "NODE_OPTIONS='--max_old_space_size=8192' next dev --webpack",
     "build": "NODE_OPTIONS='--max_old_space_size=8192' next build",
     "start": "NODE_OPTIONS='--max_old_space_size=8192' next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate"
+  }
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.4",
