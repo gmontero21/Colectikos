@@ -33,7 +33,7 @@ export default function Hero({ completedCount, totalCount }: HeroProps) {
         {/* Logo and Slogan Container */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-center md:text-left w-full px-4 mb-8 md:mb-12">
           <Image 
-            src="/images/Imagenes_Pagina/logo_colectikos_color.png" 
+            src="/images/Imagenes_Pagina/logo_colectikos_color.PNG" 
             alt="Logo Colectikos" 
             width={320} 
             height={320} 

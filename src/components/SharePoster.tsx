@@ -137,7 +137,7 @@ export default function SharePoster({
           <div className="justify-self-center ml-16 translate-y-8">
             <div className="flex items-center justify-center h-40 w-40">
               <CanvasImage 
-                src="/images/Imagenes_Pagina/logo_colectikos_oro.png"
+                src="/images/Imagenes_Pagina/logo_colectikos_oro.PNG"
                 className="h-full w-full"
                 size={512}
                 isContain={true}

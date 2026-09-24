@@ -195,11 +195,11 @@ export default function AuthBox() {
     <div className="bg-white/85 backdrop-blur-md p-8 rounded-3xl shadow-2xl max-w-md w-full border border-white/20">
       <div className="flex justify-center mb-6">
         <img 
-          src="/images/Imagenes_Pagina/logo_colectikos_color.png" 
+          src="/images/Imagenes_Pagina/logo_colectikos_color.PNG" 
           alt="Colectikos" 
           width={150} className="h-24 w-auto object-contain drop-shadow-sm"
           onError={(e) => {
-            e.currentTarget.src = "/images/Imagenes_Pagina/logo_colectikos_color.png";
+            e.currentTarget.src = "/images/Imagenes_Pagina/logo_colectikos_color.PNG";
           }}
         />
       </div>

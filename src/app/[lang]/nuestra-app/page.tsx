@@ -244,7 +244,7 @@ function NuestraAppContent() {
               <div className="bg-white rounded-2xl shadow-sm p-8 relative text-center border border-stone-100 flex flex-col items-center z-10 hover:shadow-md transition-shadow">
                 <span className="absolute top-4 right-6 text-gray-300 text-lg font-bold">2</span>
                 <div className="w-24 h-24 mb-6 relative flex items-center justify-center">
-                  <img src="/images/Imagenes_Pagina/Otico-modos-nomada.png?v=2" alt="Otico Nómada" className="w-full h-full object-contain drop-shadow-md" />
+                  <img src="/images/Imagenes_Pagina/Otico-modos-nomada2.PNG" alt="Otico Nómada" className="w-full h-full object-contain drop-shadow-md" />
                 </div>
                 <h3 className="text-xl font-bold text-stone-800 mb-2">{t.modeNomada}</h3>
                 <p className="text-sm text-amber-700 font-medium mb-4 italic">
