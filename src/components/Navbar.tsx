@@ -105,8 +105,7 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
     toast.success('Cerrando sesión...');
     
     // Cerrar sesión en Clerk y redirigir
-    await signOut();
-    router.push('/login');
+    await signOut({ redirectUrl: '/' });
   };
 
   return (
