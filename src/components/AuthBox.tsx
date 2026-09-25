@@ -106,6 +106,8 @@ export default function AuthBox() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetCode, setResetCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
   
   useEffect(() => {
     if (isAuthLoaded && isSignedIn) {
@@ -182,8 +184,10 @@ export default function AuthBox() {
           await clerk.setActive({ session: completeSignUp.createdSessionId });
           router.push('/');
         } else {
-          console.log("Sign up needs verification:", completeSignUp);
-          setErrorMsg(t.errors.verification_required);
+          // Send verification email
+          await clerk.client.signUp.prepareVerification({ strategy: 'email_code' });
+          setIsVerifyingEmail(true);
+          setErrorMsg('');
           setIsLoading(false);
         }
       } catch (err: any) {
@@ -250,6 +254,99 @@ export default function AuthBox() {
       setIsLoading(false);
     }
   };
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode) {
+      setErrorMsg("Por favor, ingresa el código de verificación.");
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMsg('');
+    
+    try {
+      const completeSignUp = await clerk.client.signUp.attemptVerification({
+        strategy: 'email_code',
+        code: verificationCode,
+      });
+
+      if (completeSignUp.status === 'complete') {
+        await clerk.setActive({ session: completeSignUp.createdSessionId });
+        router.push('/');
+      } else {
+        console.log("Sign up verification needs additional steps:", completeSignUp);
+        setErrorMsg(t.errors.additional_steps);
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      console.log("Clerk Email Verification Error:", err.errors || err);
+      setErrorMsg(getErrorMessage(err, 'generic_signup'));
+      setIsLoading(false);
+    }
+  };
+
+  if (isVerifyingEmail) {
+    return (
+      <div className="bg-white/85 backdrop-blur-md p-8 rounded-3xl shadow-2xl max-w-md w-full border border-white/20">
+        <div className="flex justify-center mb-6">
+          <img 
+            src="/images/Imagenes_Pagina/logo_colectikos_color.PNG" 
+            alt="Colectikos" 
+            width={150} className="h-24 w-auto object-contain drop-shadow-sm"
+            onError={(e) => {
+              e.currentTarget.src = "/images/Imagenes_Pagina/logo_colectikos_color.PNG";
+            }}
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Verifica tu Correo</h2>
+        <p className="text-sm text-gray-600 text-center mb-6">
+          Ingresa el código de 6 dígitos que enviamos a <strong>{email}</strong> para activar tu cuenta.
+        </p>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm text-center font-medium">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleVerifyEmail} className="flex flex-col gap-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Código de 6 dígitos"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors text-center tracking-[0.25em] font-bold text-lg"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl mt-2 shadow-sm transition-colors flex justify-center items-center cursor-pointer relative z-50"
+          >
+            {isLoading ? (
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : "Verificar Cuenta"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button 
+            type="button" 
+            onClick={() => { setIsVerifyingEmail(false); setErrorMsg(''); }}
+            className="text-sm text-gray-500 hover:text-emerald-600 font-medium underline transition-colors focus:outline-none"
+          >
+            Volver al registro
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isResettingPassword) {
     return (
