@@ -834,7 +834,7 @@ export const mockLugares: Lugar[] = [
     "descripcion_en": "Spectacular waterfall hidden in the mountain.",
     "ubicacion": "Sarchí, Alajuela",
     "ubicacion_en": "Sarchi, Alajuela",
-    "imagenUrl": "/images/Postales_Generales/Rios y Cataratas/Postales-rios-y-cataratas-catarata-vuelta-del-Cañon.png"
+    "imagenUrl": "/images/Postales_Generales/Rios y Cataratas/Postales-rios-y-cataratas-catarata-vuelta-del-Canon.png"
   },
   {
     "id": "75",
@@ -966,7 +966,7 @@ export const mockLugares: Lugar[] = [
     "descripcion_en": "Old penitentiary turned into an interactive museum.",
     "ubicacion": "San José Centro, San José",
     "ubicacion_en": "Downtown, San Jose",
-    "imagenUrl": "/images/Postales_Generales/Cultura/Postales-cultura-museo-de-los-niños.png"
+    "imagenUrl": "/images/Postales_Generales/Cultura/Postales-cultura-museo-de-los-ninos.png"
   },
   {
     "id": "87",
@@ -988,7 +988,7 @@ export const mockLugares: Lugar[] = [
     "descripcion_en": "National Sanctuary of the Lady of Los Angeles.",
     "ubicacion": "Cartago Centro, Cartago",
     "ubicacion_en": "Downtown, Cartago",
-    "imagenUrl": "/images/Postales_Generales/Cultura/Postales-cultura-basilica-de-nuestra-señora-de-los-angeles.png"
+    "imagenUrl": "/images/Postales_Generales/Cultura/Postales-cultura-basilica-de-nuestra-senora-de-los-angeles.png"
   },
   {
     "id": "89",
@@ -1110,7 +1110,7 @@ export const mockLugares: Lugar[] = [
     "descripcion_en": "Wetland ideal for aquatic safaris and birding.",
     "ubicacion": "Los Chiles / Guatuso, Alajuela",
     "ubicacion_en": "Los Chiles / Guatuso, Alajuela",
-    "imagenUrl": "/images/Postales_Generales/Bosques y Reservas/postales-bosques-y-reservas-caño-negro.png"
+    "imagenUrl": "/images/Postales_Generales/Bosques y Reservas/postales-bosques-y-reservas-cano-negro.png"
   },
   {
     "id": "100",
@@ -1121,6 +1121,6 @@ export const mockLugares: Lugar[] = [
     "descripcion_en": "Marine reserve ideal for diving and snorkeling.",
     "ubicacion": "Osa, Puntarenas",
     "ubicacion_en": "Osa, Puntarenas",
-    "imagenUrl": "/images/Postales_Generales/Bosques y Reservas/postales-bosques-y-reservas-isla-del-caño.png"
+    "imagenUrl": "/images/Postales_Generales/Bosques y Reservas/postales-bosques-y-reservas-isla-del-cano.png"
   }
 ];
