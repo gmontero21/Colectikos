@@ -29,6 +29,7 @@ import { DictionaryProvider } from "../../context/DictionaryContext";
 import { Toaster } from 'react-hot-toast';
 import { Toaster as SonnerToaster } from 'sonner';
 import { ClerkProvider } from '@clerk/nextjs';
+import { esES, enUS } from '@clerk/localizations';
 import Navbar from "../../components/Navbar";
 import InstallBanner from "../../components/InstallBanner";
 import { getDictionary } from "../../dictionaries/getDictionary";
@@ -48,8 +49,46 @@ export default async function RootLayout({
   // @ts-ignore - Agregamos lang dinámicamente al diccionario
   dict.lang = lang;
 
+  const activeLocalization = lang === 'es' ? {
+    ...esES,
+    signIn: {
+      ...esES.signIn,
+      start: {
+        ...esES.signIn?.start,
+        title: 'Ingresá',
+        actionText: '¿No tenés cuenta?',
+        actionLink: 'Registrate',
+      }
+    },
+    signUp: {
+      ...esES.signUp,
+      start: {
+        ...esES.signUp?.start,
+        actionText: '¿Ya tenés una cuenta?',
+        actionLink: 'Ingresá',
+      }
+    },
+    formFieldLabel__password: 'Contraseña (mínimo 10 caracteres)',
+    formFieldLabel__newPassword: 'Nueva contraseña (mínimo 10 caracteres)',
+    formFieldInputPlaceholder__signUpPassword: 'Mínimo 10 caracteres',
+    formFieldInputPlaceholder__password: 'Mínimo 10 caracteres',
+  } : {
+    ...enUS,
+    signIn: {
+      ...enUS.signIn,
+      start: {
+        ...enUS.signIn?.start,
+        subtitle: 'Welcome! Please sign in to continue',
+      }
+    },
+    formFieldLabel__password: 'Password (minimum 10 characters)',
+    formFieldLabel__newPassword: 'New password (minimum 10 characters)',
+    formFieldInputPlaceholder__signUpPassword: 'Minimum 10 characters',
+    formFieldInputPlaceholder__password: 'Minimum 10 characters',
+  };
+
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={activeLocalization}>
       <html lang={resolvedParams.lang} suppressHydrationWarning>
         <body className={`${inter.className} text-stone-800 antialiased min-h-screen flex flex-col`} suppressHydrationWarning>
           {/* Textura sutil de ruido para emular papel/acuarela */}

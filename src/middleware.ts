@@ -27,9 +27,11 @@ function getLocale(request: NextRequest): string {
 }
 
 const isPublicRoute = createRouteMatcher([
-  '/login',
+  '/login(.*)',
+  '/sign-up(.*)',
   '/sso-callback',
-  '/:lang/login',
+  '/:lang/login(.*)',
+  '/:lang/sign-up(.*)',
   '/:lang/terminos',
   '/:lang/contact',
   '/:lang/provincias',

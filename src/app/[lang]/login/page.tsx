@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import AuthBox from '../../../components/AuthBox';
 import LanguageSwitcher from '../../../components/LanguageSwitcher';
@@ -39,7 +39,9 @@ export default function LoginPage() {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="relative z-10 w-full flex justify-center mt-12 md:mt-0"
       >
-        <AuthBox />
+        <Suspense fallback={<div className="w-full max-w-md h-[480px] bg-white/50 backdrop-blur-md rounded-3xl animate-pulse" />}>
+          <AuthBox />
+        </Suspense>
       </motion.div>
     </div>
   );
