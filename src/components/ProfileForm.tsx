@@ -141,8 +141,8 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
     window.dispatchEvent(new Event('profileUpdated'));
 
     if (hasMedal) {
-      toast.success(formDict?.successMessage || 'Gracias por actualizar tu perfil. Continúa coleccionando.');
-      router.push('/profile');
+      toast.success(formDict?.successMessage || (dict?.lang === 'en' ? 'Thank you for updating your profile. Keep collecting.' : 'Gracias por actualizar tu perfil. Continúa coleccionando.'));
+      router.push(dict?.lang === 'en' ? '/en/profile' : '/profile');
     } else {
       // Simular guardado y otorgar medalla por primera vez
       setShowMedal(true);
@@ -181,7 +181,7 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
                   {level}
                 </div>
                 <div className="text-sm">
-                  <p className="font-bold text-amber-700 leading-tight">Nivel {level}</p>
+                  <p className="font-bold text-amber-700 leading-tight">{(dict?.lang === 'en' ? 'Level' : 'Nivel')} {level}</p>
                   <p className="text-amber-600 text-xs font-semibold">{xp} XP</p>
                 </div>
               </div>
@@ -497,9 +497,9 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
         isOpen={showMedal} 
         onClose={() => {
           setShowMedal(false);
-          router.push('/profile');
+          router.push(dict?.lang === 'en' ? '/en/profile' : '/profile');
         }} 
-        newRank="Identidad Lista 🎖️" 
+        newRank={formDict?.identityReady || (dict?.lang === 'en' ? 'Identity Ready 🎖️' : 'Identidad Lista 🎖️')} 
       />
     </div>
   );

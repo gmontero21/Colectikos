@@ -46,6 +46,8 @@ export default function LevelUpModal({ isOpen, onClose, newRank }: LevelUpModalP
     }
   }, [isOpen]);
 
+  const isEn = dict?.lang === 'en';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -71,11 +73,11 @@ export default function LevelUpModal({ isOpen, onClose, newRank }: LevelUpModalP
               <Trophy size={40} className="text-yellow-500 drop-shadow-md" />
             </div>
             
-            <h2 className="text-3xl font-extrabold text-stone-900 mb-2">{dict?.levelUpModal?.congratulations || '¡Felicidades!'}</h2>
-            <p className="text-stone-500 mb-6 font-medium">{dict?.levelUpModal?.achievement_unlocked || 'Has alcanzado un nuevo rango en tu colección.'}</p>
+            <h2 className="text-3xl font-extrabold text-stone-900 mb-2">{dict?.levelUpModal?.congratulations || (isEn ? 'Congratulations!' : '¡Felicidades!')}</h2>
+            <p className="text-stone-500 mb-6 font-medium">{dict?.levelUpModal?.achievement_unlocked || (isEn ? 'You have reached a new rank in your collection.' : 'Has alcanzado un nuevo rango en tu colección.')}</p>
             
             <div className="bg-emerald-50 rounded-2xl py-4 px-6 mb-8 border border-emerald-100">
-              <p className="text-sm text-emerald-800 font-semibold mb-1">{dict?.levelUpModal?.rank_achieved || 'Nuevo Rango'}</p>
+              <p className="text-sm text-emerald-800 font-semibold mb-1">{dict?.levelUpModal?.rank_achieved || (isEn ? 'Rank Achieved' : 'Nuevo Rango')}</p>
               <p className="text-2xl font-bold text-emerald-600">{newRank}</p>
             </div>
 
@@ -83,7 +85,7 @@ export default function LevelUpModal({ isOpen, onClose, newRank }: LevelUpModalP
               onClick={onClose}
               className="w-full bg-stone-900 hover:bg-stone-800 text-white font-bold py-4 rounded-xl transition-colors shadow-md hover:shadow-lg"
             >
-              {dict?.levelUpModal?.close || '¡Pura Vida!'}
+              {dict?.levelUpModal?.close || (isEn ? 'Close' : '¡Pura Vida!')}
             </button>
           </motion.div>
         </div>
