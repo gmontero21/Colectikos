@@ -117,19 +117,19 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
     borderClass = 'border-[#cd7f32] shadow-[#cd7f32]/20';
     badgeColor = 'border-[#cd7f32] bg-[#cd7f32]/80 text-white';
     ModeIcon = Eye;
-    modeLabel = dict?.unlockModal?.curioso || 'Curioso';
+    modeLabel = (dict?.unlockModal?.curioso || 'Curioso').replace(/^Modo\s+/i, '').replace(/\s+Mode$/i, '');
     modeBadgeClass = 'text-[#cd7f32] bg-[#cd7f32]/10 border-[#cd7f32]/20';
   } else if (mode === 'Nómada') {
     borderClass = 'border-[#c0c0c0] shadow-[#c0c0c0]/20';
     badgeColor = 'border-[#c0c0c0] bg-[#c0c0c0]/80 text-stone-800';
     ModeIcon = Navigation;
-    modeLabel = dict?.unlockModal?.nomada || 'Nómada';
+    modeLabel = (dict?.unlockModal?.nomada || 'Nómada').replace(/^Modo\s+/i, '').replace(/\s+Mode$/i, '');
     modeBadgeClass = 'text-stone-500 bg-stone-100 border-stone-200';
   } else if (mode === 'Conquistador') {
     borderClass = 'border-[#ffd700] shadow-[#ffd700]/40';
     badgeColor = 'border-[#ffd700] bg-[#ffd700]/90 text-stone-900';
     ModeIcon = Award;
-    modeLabel = dict?.unlockModal?.conquistador || 'Conquistador';
+    modeLabel = (dict?.unlockModal?.conquistador || 'Conquistador').replace(/^Modo\s+/i, '').replace(/\s+Mode$/i, '');
     modeBadgeClass = 'text-amber-600 bg-amber-50 border-amber-200/60';
   }
 

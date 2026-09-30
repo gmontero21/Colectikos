@@ -17,46 +17,44 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
   const [isMobileLangOpen, setIsMobileLangOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { user, isLoaded } = useUser();
-  const [username, setUsername] = useState<string>('Coleccionista');
+  const [username, setUsername] = useState<string>('NuevoUsuario');
   const [userGender, setUserGender] = useState<string>('Masculino');
+  const { completedPlaces, xp, level, currentStreak, userProfile } = useProgress();
 
   useEffect(() => {
-    const loadAvatar = () => {
-      try {
-        const saved = localStorage.getItem('userProfileData');
-        if (saved) {
+    if (isLoaded && !user) {
+      setUsername('NuevoUsuario');
+      setAvatarUrl(null);
+      return;
+    }
+    
+    // Si tenemos el perfil desde el contexto (reacciona automáticamente)
+    if (userProfile) {
+      if (userProfile.avatarUrl) setAvatarUrl(userProfile.avatarUrl);
+      if (userProfile.username) setUsername(userProfile.username);
+      if (userProfile.gender) setUserGender(userProfile.gender);
+    } else {
+      // Fallback a localStorage si el contexto aún no lo tiene pero está en memoria
+      const saved = localStorage.getItem('userProfileData');
+      if (saved) {
+        try {
           const data = JSON.parse(saved);
-          if (data.avatarUrl) {
-            setAvatarUrl(data.avatarUrl);
-          }
-          if (data.username) {
-            setUsername(data.username);
-          } else if (isLoaded && user?.username) {
-            setUsername(user.username);
-          }
-          if (data.gender) {
-            setUserGender(data.gender);
-          }
-        } else if (isLoaded && user?.username) {
-          setUsername(user.username);
-        }
-      } catch (e) {
-        console.error("Error loading profile from localStorage:", e);
+          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+          if (data.username) setUsername(data.username);
+          if (data.gender) setUserGender(data.gender);
+        } catch (e) {}
+      } else if (isLoaded && user?.username) {
+        setUsername(user.username);
+      } else if (isLoaded && !user?.username) {
+        setUsername('NuevoUsuario');
       }
-    };
-
-    // Cargar al montar el componente
-    loadAvatar();
-
-    // Escuchar actualizaciones (cuando se guarda el formulario)
-    window.addEventListener('profileUpdated', loadAvatar);
-    return () => window.removeEventListener('profileUpdated', loadAvatar);
-  }, [isLoaded, user]);
+    }
+  }, [isLoaded, user, userProfile]);
 
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useClerk();
-  const { completedPlaces, xp, level, currentStreak } = useProgress();
+  
   const baseLugares = mockLugares.filter(l => l.categoria !== 'PROVINCIA');
   const totalGlobal = baseLugares.length;
   const completadosGlobal = baseLugares.filter(l => completedPlaces.includes(l.id)).length;

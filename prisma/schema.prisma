@@ -15,6 +15,7 @@ model User {
   email               String         @unique
   passwordHash        String
   name                String
+  avatarUrl           String?
   genero              String?
   rangoEdad           String?
   provinciaResidencia String?
@@ -94,6 +95,7 @@ enum CategoriaLugar {
   LAGUNAS
   CIUDAD_Y_CULTURA
   BOSQUES_RESERVAS
+  HITOS_CULTURALES
 }
 model CommunityPost {
   id        String   @id @default(cuid())

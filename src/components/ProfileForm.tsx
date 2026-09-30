@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Camera, MapPin, User, Users, Backpack, Coffee, Mountain, 
   Award, ChevronRight, ChevronLeft, Map, Tent, Palmtree, ChevronDown, Globe, Eye
@@ -11,6 +11,7 @@ import LevelUpModal from './LevelUpModal';
 import AvatarSelector from './AvatarSelector';
 import { useDictionary } from '../context/DictionaryContext';
 import { useProgress } from '../context/ProgressContext';
+import { updateUserProfile } from '../actions/user';
 
 // Interfaces
 export interface FormData {
@@ -58,6 +59,31 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
       console.error(e);
     }
   }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      console.log("ProfileForm -> Received initialData:", initialData);
+      setFormData(prev => {
+        const nextData = {
+          ...prev,
+          ...initialData,
+          avatarType: initialData.avatarType || prev.avatarType,
+          avatarUrl: initialData.avatarUrl || prev.avatarUrl,
+          username: initialData.username || prev.username,
+          gender: initialData.gender || prev.gender,
+          ageRange: initialData.ageRange || prev.ageRange,
+          location: initialData.location || prev.location,
+          favoritePlace: initialData.favoritePlace || prev.favoritePlace,
+          favoriteCategory: initialData.favoriteCategory || prev.favoriteCategory,
+          travelStyle: initialData.travelStyle || prev.travelStyle,
+          travelCompany: initialData.travelCompany || prev.travelCompany
+        };
+        console.log("ProfileForm -> Updating formData to:", nextData);
+        return nextData;
+      });
+    }
+  }, [initialData]);
+
   
   const [formData, setFormData] = useState<FormData>({
     avatarType: initialData.avatarType || 'default',
@@ -99,26 +125,14 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
     // Guardar en localStorage para persistencia local temporal
     localStorage.setItem('userProfileData', JSON.stringify(formData));
     
-    // Guardar en Base de Datos (Prisma) a través del backend
+    // Guardar en Base de Datos (Prisma) usando Server Action
     try {
-      await fetch('http://192.168.86.99:5001/api/auth/preferences', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          genero: formData.gender,
-          rangoEdad: formData.ageRange,
-          provinciaResidencia: formData.location,
-          lugarFavorito: formData.favoritePlace,
-          tipoLugarPreferido: formData.favoriteCategory,
-          estiloViaje: formData.travelStyle,
-          companiaHabitual: formData.travelCompany
-        })
-      });
+      const res = await updateUserProfile(formData, formData.username);
+      if (!res.success) {
+        console.warn("Error guardando en BD (Prisma):", res.error);
+      }
     } catch (error) {
-      console.warn("Backend local no disponible o no accesible, usando fallback de localStorage.");
+      console.warn("Error llamando a updateUserProfile, usando fallback de localStorage.", error);
     }
 
     // Notificar a otros componentes (como Navbar) que el perfil se actualizó

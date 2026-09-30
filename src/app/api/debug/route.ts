@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { checkInAndAwardXP } from '@/actions/gamification';
+import prisma from '@/lib/prisma';
 
 export async function GET() {
-  const res = await checkInAndAwardXP('95', 'CURIOSO', 'gmontero21');
-  return NextResponse.json(res);
+  const users = await prisma.user.findMany();
+  return NextResponse.json(users);
 }

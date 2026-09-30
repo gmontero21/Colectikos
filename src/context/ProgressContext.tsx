@@ -10,7 +10,8 @@ import { getAllCommunityRatings } from '../actions/ratings';
 import { checkInAndAwardXP, rateAndAwardXP, getUserGamification, recordDailyLogin } from '../actions/gamification';
 import { toast as sonnerToast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
-
+import { updateUserProgressNote, getUserProgress, removeUserProgress } from '../actions/progress';
+import { getUserProfile } from '../actions/user';
 interface ProgressContextType {
   completedPlaces: string[];
   placeDetails: Record<string, { date: string; note: string }>;
@@ -25,6 +26,7 @@ interface ProgressContextType {
   level: number;
   currentStreak: number;
   handleRate: (id: string, score: number) => Promise<void>;
+  userProfile: any;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -47,13 +49,70 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const { user, isLoaded: clerkLoaded } = useUser();
   const dict = useDictionary();
   const hasLoadedRef = useRef(false);
 
+  // Prevención visual de "Ghosting" de datos:
+  // Si el usuario cambia o cierra sesión, limpiamos localStorage para que no se muestren datos del usuario anterior.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && clerkLoaded) {
+      const lastUserId = localStorage.getItem('lastClerkUserId');
+      if (user?.id) {
+        if (lastUserId && lastUserId !== user.id) {
+          // El usuario cambió (ej. de iCloud a Hotmail) usando UserButton
+          localStorage.removeItem('tico100_progress');
+          localStorage.removeItem('tico100_place_details');
+          localStorage.removeItem('tico100_bucket_list');
+          localStorage.removeItem('tico100_unlock_modes');
+          localStorage.removeItem('userProfileData');
+          localStorage.removeItem('hasSeenTicos100Tour');
+        }
+        localStorage.setItem('lastClerkUserId', user.id);
+      } else if (!user && lastUserId) {
+        // La sesión expiró o se eliminó la cuenta
+        localStorage.removeItem('tico100_progress');
+        localStorage.removeItem('tico100_place_details');
+        localStorage.removeItem('tico100_bucket_list');
+        localStorage.removeItem('tico100_unlock_modes');
+        localStorage.removeItem('userProfileData');
+        localStorage.removeItem('hasSeenTicos100Tour');
+        localStorage.removeItem('userProfileData');
+        localStorage.removeItem('lastClerkUserId');
+        
+        // REINICIAR el ref para que si vuelve a iniciar sesión sin refrescar la página, vuelva a cargar los datos
+        hasLoadedRef.current = false;
+        setUserProfile(null);
+      }
+    }
+  }, [user?.id, clerkLoaded, user]);
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      try {
+        const saved = localStorage.getItem('userProfileData');
+        if (saved) {
+          setUserProfile(JSON.parse(saved));
+        } else {
+          setUserProfile(null);
+        }
+      } catch (e) {
+        console.error("Error reading updated profile from localStorage", e);
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
+
   useEffect(() => {
     if (!clerkLoaded) return;
+    
+    // Si no hay usuario logueado, no cargamos progreso de la DB ni bloqueamos el ref
+    if (!user) return;
+
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
 
@@ -102,35 +161,51 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         console.error("Error fetching gamification data", e);
       }
 
-      if (token) {
-        try {
-          const res = await fetch('http://192.168.86.99:5001/api/progress/me', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+      try {
+        const progressRes = await getUserProgress(localUsername);
+        if (progressRes.success && progressRes.checkins) {
+          const dbCompleted: string[] = [];
+          const dbDetails: Record<string, { date: string; note: string }> = {};
           
-          if (res.ok) {
-            const data = await res.json();
-            if (data.checkins) {
-              const dbCompleted: string[] = [];
-              const dbDetails: Record<string, { date: string; note: string }> = {};
-              
-              data.checkins.forEach((item: any) => {
-                dbCompleted.push(item.lugarId);
-                if (item.notas || item.fechaCompletado) {
-                  dbDetails[item.lugarId] = {
-                    date: item.fechaCompletado ? new Date(item.fechaCompletado).toISOString().split('T')[0] : '',
-                    note: item.notas || ''
-                  };
-                }
-              });
-
-              setCompletedPlaces(dbCompleted);
-              setPlaceDetails(dbDetails);
+          progressRes.checkins.forEach((item: any) => {
+            dbCompleted.push(item.lugarId);
+            if (item.notas || item.fechaCompletado) {
+              dbDetails[item.lugarId] = {
+                date: item.fechaCompletado ? new Date(item.fechaCompletado).toISOString().split('T')[0] : '',
+                note: item.notas || ''
+              };
             }
-          }
-        } catch (e) {
-          console.error("Error fetching progress from backend", e);
+          });
+
+          setCompletedPlaces(dbCompleted);
+          setPlaceDetails(dbDetails);
         }
+      } catch (e) {
+        console.error("Error fetching progress from db", e);
+      }
+
+      try {
+        const profileRes = await getUserProfile(localUsername);
+        if (profileRes.success && profileRes.user) {
+          const dbUser = profileRes.user;
+          const hydratedProfile = {
+            username: dbUser.username,
+            avatarUrl: dbUser.avatarUrl || '',
+            gender: dbUser.genero || '',
+            ageRange: dbUser.rangoEdad || '',
+            location: dbUser.provinciaResidencia || '',
+            favoritePlace: dbUser.lugarFavorito || '',
+            favoriteCategory: dbUser.tipoLugarPreferido || '',
+            travelStyle: dbUser.estiloViaje || '',
+            travelCompany: dbUser.companiaHabitual || ''
+          };
+          console.log("HYDRATING PROFILE IN CONTEXT:", hydratedProfile);
+          localStorage.setItem('userProfileData', JSON.stringify(hydratedProfile));
+          setUserProfile(hydratedProfile);
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
+      } catch (e) {
+        console.error("Error fetching user profile from db", e);
       }
       
       // 3. Obtener calificaciones de la comunidad para todos los lugares de un solo golpe (Lazy Bulk Fetch)
@@ -251,6 +326,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     const newState = isRemoving 
       ? completedPlaces.filter(placeId => placeId !== id)
       : [...completedPlaces, id];
+
+    if (isRemoving) {
+      try {
+        let localUsername = user?.username || undefined;
+        const profileData = localStorage.getItem('userProfileData');
+        if (profileData) {
+          try {
+            const parsed = JSON.parse(profileData);
+            if (parsed.username) localUsername = parsed.username;
+          } catch (e) {}
+        }
+        await removeUserProgress(id, localUsername);
+      } catch (e) {
+        console.error("Error removing progress", e);
+      }
+    }
 
     // Animaciones de recompensa solo cuando se añade un lugar nuevo
     if (!isRemoving) {
@@ -377,20 +468,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
     // 2. Persistencia asíncrona en la Base de Datos
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return; // Failsafe para usuarios no logueados (se guarda en local)
+      let localUsername = user?.username || undefined;
+      const profileData = localStorage.getItem('userProfileData');
+      if (profileData) {
+        try {
+          const parsed = JSON.parse(profileData);
+          if (parsed.username) localUsername = parsed.username;
+        } catch (e) {}
+      }
+      if (!localUsername) {
+        localUsername = localStorage.getItem('localUsername') || undefined;
+      }
       
-      const res = await fetch(`http://192.168.86.99:5001/api/progress/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ notas: note })
-      });
+      const res = await updateUserProgressNote(id, note, localUsername);
 
-      if (!res.ok) {
-        console.error('Error al persistir la bitácora en la BD');
+      if (!res.success) {
+        console.error('Error al persistir la bitácora en la BD', res.error);
       }
     } catch (e) {
       console.error('Error de red al guardar la bitácora', e);
@@ -398,7 +491,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, handleRate }}>
+    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, handleRate, userProfile }}>
       {children}
       <LevelUpModal 
         isOpen={showLevelUp} 

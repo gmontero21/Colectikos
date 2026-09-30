@@ -34,7 +34,7 @@ import StaticProgressMap from '../../../components/StaticProgressMap';
 import { getProvincesForLugar } from '../../../utils/getLugares';
 
 export default function Profile() {
-  const { completedPlaces, unlockModes, currentStreak, xp, level } = useProgress(); 
+  const { completedPlaces, unlockModes, currentStreak, xp, level, userProfile } = useProgress(); 
   const dict = useDictionary(); 
   const lang = dict?.lang || 'es';
   const localizedLugares = mapLugaresByLocale(mockLugares, lang);
@@ -48,40 +48,26 @@ export default function Profile() {
   const [playMode, setPlayMode] = useState<string>('Modo Curioso');
 
   useEffect(() => {
-    const loadAvatar = () => {
+    if (userProfile) {
+      if (userProfile.avatarUrl) setAvatarUrl(userProfile.avatarUrl);
+      if (userProfile.username) setUsername(userProfile.username);
+      if (userProfile.gender) setUserGender(userProfile.gender);
+      if (userProfile.playMode) setPlayMode(userProfile.playMode);
+    } else {
       try {
         const saved = localStorage.getItem('userProfileData');
         if (saved) {
           const data = JSON.parse(saved);
-          if (data.avatarUrl) {
-            setAvatarUrl(data.avatarUrl);
-          }
-          if (data.username) {
-            setUsername(data.username);
-          } else if (isLoaded && user?.username) {
-            setUsername(user.username);
-          }
-          if (data.gender) {
-            setUserGender(data.gender);
-          }
-          if (data.playMode) {
-            setPlayMode(data.playMode);
-          }
+          if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+          if (data.username) setUsername(data.username);
+          if (data.gender) setUserGender(data.gender);
+          if (data.playMode) setPlayMode(data.playMode);
         } else if (isLoaded && user?.username) {
           setUsername(user.username);
         }
-      } catch (e) {
-        console.error("Error loading profile:", e);
-      }
-    };
-    
-    // Cargar al montar
-    loadAvatar();
-    
-    // Escuchar actualizaciones
-    window.addEventListener('profileUpdated', loadAvatar);
-    return () => window.removeEventListener('profileUpdated', loadAvatar);
-  }, [isLoaded, user]);
+      } catch (e) {}
+    }
+  }, [isLoaded, user, userProfile]);
   
   const handleShareProgress = async () => {
     if (!progressRef.current) return;

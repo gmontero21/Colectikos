@@ -3,14 +3,18 @@
 import prisma from '../lib/prisma';
 import { auth, currentUser } from '@clerk/nextjs/server';
 
-async function ensureDbUser(localUsername?: string) {
+export async function ensureDbUser(localUsername?: string) {
   let clerkId = null;
   let clerkUser = null;
+  let clerkEmail = null;
+  let clerkUsername = null;
   try {
     const authResult = await auth();
     clerkId = authResult.userId;
     if (clerkId) {
       clerkUser = await currentUser();
+      clerkEmail = clerkUser?.primaryEmailAddress?.emailAddress;
+      clerkUsername = clerkUser?.username;
     }
   } catch (e) {
     console.warn("Clerk context not found.");
@@ -19,62 +23,61 @@ async function ensureDbUser(localUsername?: string) {
   let dbUser = null;
 
   if (clerkId) {
-    dbUser = await prisma.user.findFirst({ where: { username: clerkId } });
-    if (!dbUser) {
-      dbUser = await prisma.user.findUnique({ where: { id: clerkId } });
+    // Si hay usuario autenticado por Clerk, mandamos en base a Clerk
+    dbUser = await prisma.user.findUnique({ where: { id: clerkId } });
+    if (!dbUser && clerkEmail) {
+      dbUser = await prisma.user.findUnique({ where: { email: clerkEmail } });
     }
-  }
-
-  const targetUsername = localUsername || clerkUser?.username || clerkId;
-
-  if (!dbUser && targetUsername) {
-    dbUser = await prisma.user.findUnique({ where: { username: targetUsername } });
-  }
-
-  const clerkEmail = clerkUser?.primaryEmailAddress?.emailAddress;
-  if (!dbUser && clerkEmail) {
-    dbUser = await prisma.user.findUnique({ where: { email: clerkEmail } });
     
-    // Auto-update username if it differs from the desired target
-    if (dbUser && targetUsername && dbUser.username !== targetUsername) {
+    // Si todavía no existe en BD, lo creamos
+    if (!dbUser) {
+      const fallbackUsername = clerkUsername || `user_${clerkId.substring(0, 8)}`;
+      // Chequeo de colisión de username
+      const existingUser = await prisma.user.findUnique({ where: { username: fallbackUsername } });
+      const finalUsername = existingUser ? `${fallbackUsername}_${Date.now().toString().slice(-4)}` : fallbackUsername;
+      
       try {
-        dbUser = await prisma.user.update({
-          where: { id: dbUser.id },
-          data: { username: targetUsername }
+        dbUser = await prisma.user.create({
+          data: {
+            id: clerkId,
+            username: finalUsername,
+            email: clerkEmail || `${finalUsername}@colectikos.local`,
+            passwordHash: 'clerk_auth',
+            name: clerkUser?.firstName || finalUsername,
+            xp: 0,
+            level: 1
+          }
         });
-        console.log(`Username actualizado a ${targetUsername}`);
       } catch (e) {
-        console.warn("No se pudo actualizar el username (posible colisión)", e);
+        console.error("Error creating user from Clerk data", e);
       }
     }
+    return dbUser;
   }
 
-  // Lazy Sync: Si el usuario no existe en Prisma, lo creamos dinámicamente
-  if (!dbUser && (clerkId || targetUsername)) {
-    const fallbackUsername = targetUsername || `user_${Date.now()}`;
-    const fallbackEmail = clerkEmail || `${fallbackUsername}@colectikos.local`;
-    
-    try {
-      dbUser = await prisma.user.create({
-        data: {
-          id: clerkId || undefined,
-          username: fallbackUsername,
-          email: fallbackEmail,
-          passwordHash: 'clerk_or_local_auth',
-          name: clerkUser?.firstName || fallbackUsername,
-          xp: 0,
-          level: 1
-        }
-      });
-      console.log(`Usuario ${fallbackUsername} sincronizado en Prisma.`);
-    } catch (e) {
-      console.error("Error al hacer Lazy Sync del usuario:", e);
-      // Intentar recuperarlo de nuevo por si hubo carrera de concurrencia
-      dbUser = await prisma.user.findUnique({ where: { username: fallbackUsername } });
+  // Fallback SOLO si NO hay sesión de Clerk (por ejemplo modo invitado local)
+  if (localUsername) {
+    dbUser = await prisma.user.findUnique({ where: { username: localUsername } });
+    if (!dbUser) {
+      try {
+        dbUser = await prisma.user.create({
+          data: {
+            username: localUsername,
+            email: `${localUsername}@colectikos.local`,
+            passwordHash: 'local_auth',
+            name: localUsername,
+            xp: 0,
+            level: 1
+          }
+        });
+      } catch (e) {
+        console.error("Error creating fallback local user", e);
+      }
     }
+    return dbUser;
   }
 
-  return dbUser;
+  return null;
 }
 
 /**

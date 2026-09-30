@@ -173,10 +173,15 @@ export default function AuthBox() {
         return;
       }
       try {
+        const nameParts = fullName.trim().split(' ');
+        const parsedFirstName = nameParts[0] || '';
+        const parsedLastName = nameParts.slice(1).join(' ') || '-'; // Guión o espacio para evitar error de lastName requerido
+
         const completeSignUp = await clerk.client.signUp.create({
           emailAddress: email,
           password,
-          firstName: fullName,
+          firstName: parsedFirstName,
+          lastName: parsedLastName,
           username: username,
         });
         
@@ -276,7 +281,9 @@ export default function AuthBox() {
         router.push('/');
       } else {
         console.log("Sign up verification needs additional steps:", completeSignUp);
-        setErrorMsg(t.errors.additional_steps);
+        const missing = completeSignUp.missingFields?.join(', ') || '';
+        const unverified = completeSignUp.unverifiedFields?.join(', ') || '';
+        setErrorMsg(`Faltan requisitos en Clerk: Campos faltantes [${missing}]. Campos sin verificar [${unverified}].`);
         setIsLoading(false);
       }
     } catch (err: any) {
