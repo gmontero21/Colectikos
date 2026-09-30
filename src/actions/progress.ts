@@ -3,9 +3,9 @@
 import prisma from '../lib/prisma';
 import { ensureDbUser } from './gamification';
 
-export async function updateUserProgressNote(lugarId: string, note: string, localUsername?: string) {
+export async function updateUserProgressNote(lugarId: string, note: string, localUsername?: string, fallbackClerkId?: string) {
   try {
-    const user = await ensureDbUser(localUsername);
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) {
       return { success: false, error: 'User not found' };
     }
@@ -35,9 +35,9 @@ export async function updateUserProgressNote(lugarId: string, note: string, loca
   }
 }
 
-export async function getUserProgress(localUsername?: string) {
+export async function getUserProgress(localUsername?: string, fallbackClerkId?: string) {
   try {
-    const user = await ensureDbUser(localUsername);
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) return { success: false, error: 'User not found' };
     
     const checkins = await prisma.userProgress.findMany({
@@ -51,9 +51,9 @@ export async function getUserProgress(localUsername?: string) {
   }
 }
 
-export async function removeUserProgress(lugarId: string, localUsername?: string) {
+export async function removeUserProgress(lugarId: string, localUsername?: string, fallbackClerkId?: string) {
   try {
-    const user = await ensureDbUser(localUsername);
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) return { success: false, error: 'User not found' };
 
     await prisma.userProgress.delete({

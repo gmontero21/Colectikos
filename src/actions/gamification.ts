@@ -3,7 +3,7 @@
 import prisma from '../lib/prisma';
 import { auth, currentUser } from '@clerk/nextjs/server';
 
-export async function ensureDbUser(localUsername?: string) {
+export async function ensureDbUser(localUsername?: string, fallbackClerkId?: string) {
   let clerkId = null;
   let clerkUser = null;
   let clerkEmail = null;
@@ -18,6 +18,11 @@ export async function ensureDbUser(localUsername?: string) {
     }
   } catch (e) {
     console.warn("Clerk context not found.");
+  }
+
+  if (!clerkId && fallbackClerkId) {
+    clerkId = fallbackClerkId;
+    console.log("Using fallback clerkId:", clerkId);
   }
 
   let dbUser = null;
@@ -86,9 +91,9 @@ export async function ensureDbUser(localUsername?: string) {
  * @param mode Modo de juego (Curioso, Nómada, Conquistador).
  * @param localUsername Nombre de usuario del local storage como fallback (opcional).
  */
-export async function checkInAndAwardXP(lugarId: string, mode: string, localUsername?: string) {
+export async function checkInAndAwardXP(lugarId: string, mode: string, localUsername?: string, fallbackClerkId?: string) {
   try {
-    const dbUser = await ensureDbUser(localUsername);
+    const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
 
     if (!dbUser) {
       return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
@@ -210,9 +215,9 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
   }
 }
 
-export async function getUserGamification(localUsername?: string) {
+export async function getUserGamification(localUsername?: string, fallbackClerkId?: string) {
   try {
-    const dbUser = await ensureDbUser(localUsername);
+    const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
     if (!dbUser) return { xp: 0, level: 1 };
 
     return { xp: dbUser.xp, level: dbUser.level };
@@ -224,9 +229,9 @@ export async function getUserGamification(localUsername?: string) {
 /**
  * Registra una calificación de postal y otorga XP según las reglas.
  */
-export async function rateAndAwardXP(lugarId: string, score: number, localUsername?: string) {
+export async function rateAndAwardXP(lugarId: string, score: number, localUsername?: string, fallbackClerkId?: string) {
   try {
-    const dbUser = await ensureDbUser(localUsername);
+    const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
     if (!dbUser) {
       return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
     }
@@ -335,9 +340,9 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
   }
 }
 
-export async function recordDailyLogin(localUsername?: string) {
+export async function recordDailyLogin(localUsername?: string, fallbackClerkId?: string) {
   try {
-    const dbUser = await ensureDbUser(localUsername);
+    const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
     if (!dbUser) return { success: false, error: 'Usuario no autenticado' };
 
     const userId = dbUser.id;

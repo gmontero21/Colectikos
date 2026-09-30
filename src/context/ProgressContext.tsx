@@ -152,7 +152,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const gamificationData = await getUserGamification(localUsername);
+        const gamificationData = await getUserGamification(localUsername, user?.id);
         if (gamificationData) {
           setXp(gamificationData.xp);
           setLevel(gamificationData.level);
@@ -162,7 +162,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const progressRes = await getUserProgress(localUsername);
+        const progressRes = await getUserProgress(localUsername, user?.id);
         if (progressRes.success && progressRes.checkins) {
           const dbCompleted: string[] = [];
           const dbDetails: Record<string, { date: string; note: string }> = {};
@@ -185,7 +185,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const profileRes = await getUserProfile(localUsername);
+        const profileRes = await getUserProfile(localUsername, user.id);
         if (profileRes.success && profileRes.user) {
           const dbUser = profileRes.user;
           const hydratedProfile = {
@@ -221,7 +221,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       // 4. Registrar Ingreso Diario (Daily Login Streak)
       if (token || localUsername) {
         try {
-          const loginRes = await recordDailyLogin(localUsername);
+          const loginRes = await recordDailyLogin(localUsername, user?.id);
           if (loginRes?.success) {
             setCurrentStreak(loginRes.currentStreak || 0);
             
@@ -292,7 +292,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         localUsername = localStorage.getItem('localUsername') || undefined;
       }
 
-      const res = await rateAndAwardXP(id, score, localUsername);
+      const res = await rateAndAwardXP(id, score, localUsername, user?.id);
       
       if (res.success && 'xpAwarded' in res) {
         if (res.xpAwarded && res.xpAwarded > 0) {
@@ -337,7 +337,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
             if (parsed.username) localUsername = parsed.username;
           } catch (e) {}
         }
-        await removeUserProgress(id, localUsername);
+        await removeUserProgress(id, localUsername, user?.id);
       } catch (e) {
         console.error("Error removing progress", e);
       }
@@ -425,7 +425,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         }
 
         const modeToSave = customMode || unlockModes[id] || 'CURIOSO';
-        const res = await checkInAndAwardXP(id, modeToSave, localUsername);
+        const res = await checkInAndAwardXP(id, modeToSave, localUsername, user?.id);
         
         if (res.success && 'xpAwarded' in res) {
           if (res.xpAwarded && res.xpAwarded > 0) {
@@ -480,7 +480,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         localUsername = localStorage.getItem('localUsername') || undefined;
       }
       
-      const res = await updateUserProgressNote(id, note, localUsername);
+      const res = await updateUserProgressNote(id, note, localUsername, user?.id);
 
       if (!res.success) {
         console.error('Error al persistir la bitácora en la BD', res.error);

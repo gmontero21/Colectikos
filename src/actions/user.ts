@@ -3,9 +3,9 @@
 import prisma from '../lib/prisma';
 import { ensureDbUser } from './gamification';
 
-export async function updateUserProfile(data: any, localUsername?: string) {
+export async function updateUserProfile(data: any, localUsername?: string, fallbackClerkId?: string) {
   try {
-    const user = await ensureDbUser(localUsername);
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) {
       return { success: false, error: 'User not found' };
     }
@@ -32,9 +32,9 @@ export async function updateUserProfile(data: any, localUsername?: string) {
   }
 }
 
-export async function getUserProfile(localUsername?: string) {
+export async function getUserProfile(localUsername?: string, fallbackClerkId?: string) {
   try {
-    const user = await ensureDbUser(localUsername);
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) return { success: false, error: 'User not found' };
     console.log("SENDING DB USER TO FRONTEND:", user);
     return { success: true, user };

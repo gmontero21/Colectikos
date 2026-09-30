@@ -12,6 +12,7 @@ import AvatarSelector from './AvatarSelector';
 import { useDictionary } from '../context/DictionaryContext';
 import { useProgress } from '../context/ProgressContext';
 import { updateUserProfile } from '../actions/user';
+import { useUser } from '@clerk/nextjs';
 
 // Interfaces
 export interface FormData {
@@ -35,6 +36,7 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
   const dict = useDictionary();
   const formDict = dict?.settingsForm;
   const { xp, level } = useProgress();
+  const { user } = useUser();
 
   const [step, setStep] = useState(1);
   const totalSteps = 3;
@@ -127,7 +129,7 @@ export default function ProfileForm({ initialData = {} }: ProfileFormProps) {
     
     // Guardar en Base de Datos (Prisma) usando Server Action
     try {
-      const res = await updateUserProfile(formData, formData.username);
+      const res = await updateUserProfile(formData, formData.username, user?.id);
       if (!res.success) {
         console.warn("Error guardando en BD (Prisma):", res.error);
       }
