@@ -42,9 +42,9 @@ export async function POST(request: Request) {
     });
 
     const mailOptions = {
-      from: `"${nombre}" <${SMTP_USER}>`, // Usually sender must be the authenticated user
+      from: `"${nombre} (Colectikos)" <${SMTP_USER}>`,
       replyTo: email,
-      to: 'contacto@gemadigitalcr.com',
+      to: process.env.CONTACT_RECEIVER_EMAIL || 'soporte@colectikos.com',
       subject: `Nuevo mensaje de Colectikos: ${motivo}`,
       text: `Nombre: ${nombre}\nEmail: ${email}\nTeléfono: ${telefono || 'No proporcionado'}\nMotivo: ${motivo}\n\nMensaje:\n${comentarios}`,
       html: `
