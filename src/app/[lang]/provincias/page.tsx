@@ -55,7 +55,7 @@ export default function ProvinciasPage() {
     >
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 mb-6">
         <h2 className="text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight drop-shadow-md bg-white/60 inline-block px-6 py-2 rounded-2xl backdrop-blur-sm">
-          Postales de Provincias
+          {lang === 'en' ? 'Province Stickers' : 'Postales de Provincias'}
         </h2>
       </div>
 
