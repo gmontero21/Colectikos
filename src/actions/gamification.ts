@@ -90,6 +90,14 @@ export async function checkAndResetStamps(userId: string) {
   if (!user) return null;
 
   const now = new Date();
+  
+  if (!user.ultimaFechaEstampillas) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { estampillasDisponibles: 3, ultimaFechaEstampillas: now }
+    });
+  }
+  
   const lastDate = new Date(user.ultimaFechaEstampillas);
   
   const isSameDay = 
@@ -122,7 +130,7 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
 
     if (!dbUser) {
-      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
+      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD', xpAwarded: 0 };
     }
 
     const userId = dbUser.id;
@@ -130,11 +138,11 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
     // 1.5 Verificar y Resetear Estampillas
     const activeUser = await checkAndResetStamps(userId);
     if (!activeUser) {
-      return { success: false, error: 'Error obteniendo datos del usuario' };
+      return { success: false, error: 'Error obteniendo datos del usuario', xpAwarded: 0 };
     }
     
     if (activeUser.estampillasDisponibles <= 0) {
-      return { success: false, error: 'no_energy' };
+      return { success: false, error: 'no_energy', xpAwarded: 0 };
     }
 
     // 2. Ejecutar Transacción Segura
@@ -249,7 +257,7 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 
   } catch (error: any) {
     console.error("Error en checkInAndAwardXP:", error);
-    return { success: false, error: error.message || 'Ocurrió un error al registrar el progreso y XP' };
+    return { success: false, error: error.message || 'Ocurrió un error al registrar el progreso y XP', xpAwarded: 0 };
   }
 }
 
@@ -274,7 +282,7 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
     if (!dbUser) {
-      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
+      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD', xpAwarded: 0 };
     }
 
     const userId = dbUser.id;
@@ -397,14 +405,14 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
 
   } catch (error: any) {
     console.error("Error en rateAndAwardXP:", error);
-    return { success: false, error: error.message || 'Ocurrió un error al registrar la calificación' };
+    return { success: false, error: error.message || 'Ocurrió un error al registrar la calificación', xpAwarded: 0 };
   }
 }
 
 export async function recordDailyLogin(localUsername?: string, fallbackClerkId?: string) {
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
-    if (!dbUser) return { success: false, error: 'Usuario no autenticado' };
+    if (!dbUser) return { success: false, error: 'Usuario no autenticado', xpAwarded: 0 };
 
     const userId = dbUser.id;
     
@@ -422,7 +430,7 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
       const lastLoginStr = getCRDateString(lastLoginDate);
       if (todayStr === lastLoginStr) {
         // Ya registró su ingreso hoy
-        return { success: true, xpAwarded: 0, currentStreak: dbUser.currentStreak };
+        return { success: true, streakUpdated: false, xpAwarded: 0, currentStreak: dbUser.currentStreak, newTotalXp: dbUser.xp, newLevel: dbUser.level, bonusAwarded: 0, newStreak: dbUser.currentStreak };
       }
     }
 
@@ -501,7 +509,7 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
 
   } catch (error: any) {
     console.error("Error en recordDailyLogin:", error);
-    return { success: false, error: error.message || 'Ocurrió un error al registrar el ingreso' };
+    return { success: false, error: error.message || 'Ocurrió un error al registrar el ingreso', xpAwarded: 0 };
   }
 }
 
@@ -512,7 +520,7 @@ export async function solvePuzzleAndAwardXP(lugarId: string, localUsername?: str
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
     if (!dbUser) {
-      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
+      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD', xpAwarded: 0 };
     }
 
     const userId = dbUser.id;
@@ -555,6 +563,6 @@ export async function solvePuzzleAndAwardXP(lugarId: string, localUsername?: str
     return result;
   } catch (error: any) {
     console.error("Error en solvePuzzleAndAwardXP:", error);
-    return { success: false, error: error.message || 'Ocurrió un error al otorgar XP por el puzzle' };
+    return { success: false, error: error.message || 'Ocurrió un error al otorgar XP por el puzzle', xpAwarded: 0 };
   }
 }

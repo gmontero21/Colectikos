@@ -36,8 +36,8 @@ export default function ProximosDestinosPage() {
           const result = await getSponsorsForDestination(
             activeDestination.id, 
             activeDestination.nombre,
-            activeDestination.latitude || null, 
-            activeDestination.longitude || null
+            (activeDestination as any).latitude || null, 
+            (activeDestination as any).longitude || null
           );
           console.log("Fetched matching sponsors:", result);
           if (isMounted) setMatchingSponsors(result);
@@ -55,7 +55,7 @@ export default function ProximosDestinosPage() {
     return () => {
       isMounted = false;
     };
-  }, [activeDestinationId, activeDestination?.latitude, activeDestination?.longitude]);
+  }, [activeDestinationId, (activeDestination as any)?.latitude, (activeDestination as any)?.longitude]);
 
   // Calcular el progreso por provincia para el mapa / tarjetas
   const progressData: Record<string, { completed: number; total: number; percentage: number }> = {};

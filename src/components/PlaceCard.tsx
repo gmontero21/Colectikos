@@ -342,7 +342,8 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
                 try {
                   const profileStr = localStorage.getItem('userProfileData');
                   const localUsername = profileStr ? JSON.parse(profileStr).username : undefined;
-                  const res = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  const rawRes = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  const res = rawRes as any;
                   if (res?.success && res.xpAwarded > 0) {
                     toast.success(dict?.categories?.ALL === 'All' ? `You earned ${res.xpAwarded} XP!` : `¡Ganaste ${res.xpAwarded} XP por resolver el puzzle!`, { icon: '🏆' });
                   } else if (res?.success) {
@@ -482,7 +483,8 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
                 try {
                   const profileStr = localStorage.getItem('userProfileData');
                   const localUsername = profileStr ? JSON.parse(profileStr).username : undefined;
-                  const res = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  const rawRes = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  const res = rawRes as any;
                   if (res?.success && res.xpAwarded > 0) {
                     toast.success(dict?.categories?.ALL === 'All' ? `You earned ${res.xpAwarded} XP!` : `¡Ganaste ${res.xpAwarded} XP por resolver el puzzle!`, { icon: '🏆' });
                   } else if (res?.success) {

@@ -230,7 +230,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       // 4. Registrar Ingreso Diario (Daily Login Streak)
       if (token || localUsername) {
         try {
-          const loginRes = await recordDailyLogin(localUsername, user?.id);
+          const rawLoginRes = await recordDailyLogin(localUsername, user?.id);
+          const loginRes = rawLoginRes as any;
           if (loginRes?.success) {
             setCurrentStreak(loginRes.currentStreak || 0);
             
@@ -307,7 +308,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         localUsername = localStorage.getItem('localUsername') || undefined;
       }
 
-      const res = await rateAndAwardXP(id, score, localUsername, user?.id);
+      const rawRes = await rateAndAwardXP(id, score, localUsername, user?.id);
+      const res = rawRes as any;
       
       if (res.success && 'xpAwarded' in res) {
         if (res.bonusAwarded) {
@@ -448,7 +450,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         }
 
         const modeToSave = customMode || unlockModes[id] || 'CURIOSO';
-        const res = await checkInAndAwardXP(id, modeToSave, localUsername, user?.id);
+        const rawRes = await checkInAndAwardXP(id, modeToSave, localUsername, user?.id);
+        const res = rawRes as any;
         
         if (res.success && 'xpAwarded' in res) {
           if (res.xpAwarded && res.xpAwarded > 0) {

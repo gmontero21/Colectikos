@@ -25,9 +25,9 @@ export async function getSponsors() {
     const sponsors = await prisma.sponsor.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
-        destinosEnRuta: {
+        SponsorEnRuta: {
           include: {
-            lugar: {
+            Lugar: {
               select: {
                 id: true,
                 nombre: true,
@@ -122,7 +122,7 @@ export async function getSponsorsForDestination(postcardId: string, name: string
     const sponsors = await getSponsors();
     
     const sponsorsWithNearby = await Promise.all(sponsors.map(async (sponsor: any) => {
-      const manualDestinations = (sponsor.destinosEnRuta || []).map((rel: any) => rel.lugar);
+      const manualDestinations = (sponsor.SponsorEnRuta || []).map((rel: any) => rel.Lugar);
       const nearby = await getNearbyPostcards(sponsor.latitude, sponsor.longitude, 10, manualDestinations);
       return {
         ...sponsor,

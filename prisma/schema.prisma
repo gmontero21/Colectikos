@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,93 +7,77 @@ datasource db {
 }
 
 model User {
-  id                  String         @id @default(uuid())
-  username            String         @unique
-  email               String         @unique
-  passwordHash        String
-  name                String
-  avatarUrl           String?
-  genero              String?
-  rangoEdad           String?
-  provinciaResidencia String?
-  lugarFavorito       String?
-  tipoLugarPreferido  String?
-  estiloViaje         String?
-  companiaHabitual    String?
-  playMode            String?
-  isAdmin             Boolean        @default(false)
-  onboardingCompleted Boolean        @default(false)
-  resetPasswordToken  String?
-  resetPasswordExpires DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  
-  // XP y Niveles
-  xp                  Int            @default(0)
-  level               Int            @default(1)
-  
-  // Gamificación (Rachas)
-  currentStreak       Int            @default(0)
-  longestStreak       Int            @default(0)
-  lastLoginDate       DateTime?
-
-  // Auditoria legal
-  termsAccepted       Boolean        @default(false)
-  termsAcceptedAt     DateTime?
-  termsVersion        String?
-  
-  // Relación con progreso
-  progress            UserProgress[]
-  ratings             Rating[]
-  actionLogs          UserActionLog[]
+  id                     String          @id @default(uuid())
+  username               String          @unique
+  email                  String          @unique
+  passwordHash           String
+  name                   String
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  companiaHabitual       String?
+  estiloViaje            String?
+  lugarFavorito          String?
+  provinciaResidencia    String?
+  rangoEdad              String?
+  tipoLugarPreferido     String?
+  genero                 String?
+  onboardingCompleted    Boolean         @default(false)
+  resetPasswordExpires   DateTime?
+  resetPasswordToken     String?
+  isAdmin                Boolean         @default(false)
+  termsAccepted          Boolean         @default(false)
+  termsAcceptedAt        DateTime?
+  termsVersion           String?
+  playMode               String?
+  level                  Int             @default(1)
+  xp                     Int             @default(0)
+  currentStreak          Int             @default(0)
+  lastLoginDate          DateTime?
+  longestStreak          Int             @default(0)
+  avatarUrl              String?
+  estampillasDisponibles Int             @default(3)
+  ultimaFechaEstampillas DateTime        @default(now())
+  fechaBonoTicket        DateTime?
+  ratings                Rating[]
+  actionLogs             UserActionLog[]
+  progress               UserProgress[]
 }
 
 model Lugar {
-  id               String         @id @default(uuid())
-  nombre           String         @unique
+  id               String          @id @default(uuid())
+  nombre           String          @unique
   nombre_en        String?
   categoria        CategoriaLugar
   descripcion      String
   descripcion_en   String?
   ubicacion        String
   imagenUrl        String?
-  grupo_variante   String?
-  edition          String         @default("FOUNDER")
-  isVisible        Boolean        @default(true)
+  createdAt        DateTime        @default(now())
   authorName       String?
   authorSocialLink String?
-  createdAt        DateTime       @default(now())
-  
-  // Relación con progreso de usuarios
-  userProgress UserProgress[]
-  ratings      Rating[]
+  edition          String          @default("FOUNDER")
+  isVisible        Boolean         @default(true)
+  grupo_variante   String?
+  latitude         Float?
+  longitude        Float?
+  ratings          Rating[]
+  SponsorEnRuta    SponsorEnRuta[]
+  userProgress     UserProgress[]
 }
 
 model UserProgress {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   userId          String
   lugarId         String
-  completado      Boolean  @default(false)
+  completado      Boolean   @default(false)
   fechaCompletado DateTime?
   notas           String?
+  lugar           Lugar     @relation(fields: [lugarId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lugar           Lugar    @relation(fields: [lugarId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, lugarId]) // Un usuario solo puede tener un registro de progreso por lugar
+  @@unique([userId, lugarId])
 }
 
-enum CategoriaLugar {
-  PROVINCIA
-  VOLCAN
-  PARQUE_NACIONAL
-  PLAYA
-  RIOS_Y_CATARATAS
-  LAGUNAS
-  CIUDAD_Y_CULTURA
-  BOSQUES_RESERVAS
-  HITOS_CULTURALES
-}
 model CommunityPost {
   id        String   @id @default(cuid())
   imageUrl  String?
@@ -112,9 +93,8 @@ model Rating {
   score     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lugar     Lugar    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, placeId])
 }
@@ -122,10 +102,51 @@ model Rating {
 model UserActionLog {
   id         String   @id @default(uuid())
   userId     String
-  actionType String   // e.g. 'UNLOCK_POSTCARD', 'RATE_DESTINATION'
-  targetId   String   // e.g. '123-abc'
+  actionType String
+  targetId   String
   xpAwarded  Int
   createdAt  DateTime @default(now())
-
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Sponsor {
+  id            String          @id
+  nombre        String
+  provincia     String
+  categoria     String
+  direccion     String
+  telefono      String?
+  email         String?
+  descripcion   String
+  imagenUrl     String
+  imagenesExtra String[]
+  latitude      Float
+  longitude     Float
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  fotoExtra1    String?
+  fotoExtra2    String?
+  sitioWeb      String?
+  SponsorEnRuta SponsorEnRuta[]
+}
+
+model SponsorEnRuta {
+  sponsorId String
+  lugarId   String
+  Lugar     Lugar   @relation(fields: [lugarId], references: [id], onDelete: Cascade)
+  Sponsor   Sponsor @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  @@id([sponsorId, lugarId])
+}
+
+enum CategoriaLugar {
+  PROVINCIA
+  VOLCAN
+  PARQUE_NACIONAL
+  PLAYA
+  RIOS_Y_CATARATAS
+  LAGUNAS
+  HITOS_CULTURALES
+  BOSQUES_RESERVAS
+  CIUDAD_Y_CULTURA
 }
