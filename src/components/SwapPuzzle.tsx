@@ -61,8 +61,8 @@ export default function SwapPuzzle({ imageUrl, onSolve }: SwapPuzzleProps) {
   };
 
   const instructionText = isEnglish
-    ? "Tap one piece then another to swap them."
-    : "Toca una pieza y luego otra para intercambiarlas.";
+    ? "Swap two pieces to solve."
+    : "Toca dos piezas para intercambiarlas.";
     
   const successText = isEnglish
     ? "Excellent! You earned 30 XP."
@@ -71,16 +71,16 @@ export default function SwapPuzzle({ imageUrl, onSolve }: SwapPuzzleProps) {
   if (pieces.length === 0) return null; // loading state
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center gap-5">
-      <p className="text-stone-700 font-medium text-center px-4">
+    <div className="w-full max-w-[280px] sm:max-w-xs mx-auto flex flex-col items-center gap-3 sm:gap-4 shrink-0">
+      <p className="text-stone-600 text-sm sm:text-base font-medium text-center px-2 leading-tight">
         {isSolved ? (
-          <span className="text-emerald-600 font-bold text-lg">{successText}</span>
+          <span className="text-emerald-600 font-bold text-base sm:text-lg">{successText}</span>
         ) : (
           instructionText
         )}
       </p>
 
-      <div className="relative aspect-square w-full rounded-xl overflow-hidden border-4 border-stone-200 bg-stone-100 shadow-lg">
+      <div className="relative aspect-square w-full rounded-xl overflow-hidden border-4 border-stone-200 bg-stone-100 shadow-xl shrink-0">
         <div className="grid grid-cols-3 grid-rows-3 w-full h-full">
           {pieces.map((pieceValue, index) => {
             // Calculate background position based on the original piece value (0-8)

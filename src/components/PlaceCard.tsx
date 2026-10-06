@@ -325,17 +325,19 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
         </div>
         {communityRatingBlock}
       {isPuzzleOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsPuzzleOpen(false)}>
-          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-3 sm:p-4 bg-stone-900/80 backdrop-blur-md" onClick={() => setIsPuzzleOpen(false)}>
+          <div className="bg-white rounded-[2rem] shadow-2xl p-5 sm:p-6 w-full max-w-sm max-h-[95vh] overflow-y-auto relative flex flex-col" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setIsPuzzleOpen(false)}
-              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
+              className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors shrink-0"
             >
               <X size={18} />
             </button>
-            <h2 className="text-2xl font-black text-stone-800 tracking-tight text-center mb-6 mt-2">
-              {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
-            </h2>
+            <div className="mt-1 mb-3 sm:mb-5 text-center shrink-0">
+              <h2 className="text-xl sm:text-2xl font-black text-stone-800 tracking-tight leading-tight px-6 sm:px-2">
+                {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
+              </h2>
+            </div>
             <SwapPuzzle 
               imageUrl={displayImage} 
               onSolve={async () => {
@@ -466,17 +468,19 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
         onSelectMode={handleSelectMode} 
       />
       {isPuzzleOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsPuzzleOpen(false)}>
-          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-3 sm:p-4 bg-stone-900/80 backdrop-blur-md" onClick={() => setIsPuzzleOpen(false)}>
+          <div className="bg-white rounded-[2rem] shadow-2xl p-5 sm:p-6 w-full max-w-sm max-h-[95vh] overflow-y-auto relative flex flex-col" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setIsPuzzleOpen(false)}
-              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
+              className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors shrink-0"
             >
               <X size={18} />
             </button>
-            <h2 className="text-2xl font-black text-stone-800 tracking-tight text-center mb-6 mt-2">
-              {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
-            </h2>
+            <div className="mt-1 mb-3 sm:mb-5 text-center shrink-0">
+              <h2 className="text-xl sm:text-2xl font-black text-stone-800 tracking-tight leading-tight px-6 sm:px-2">
+                {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
+              </h2>
+            </div>
             <SwapPuzzle 
               imageUrl={displayImage} 
               onSolve={async () => {

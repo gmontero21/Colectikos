@@ -301,8 +301,8 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
 
       {/* Menú Desplegable Mobile */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-stone-200 shadow-lg absolute w-full left-0">
-          <div className="px-4 pt-4 pb-6 space-y-4">
+        <div className="lg:hidden bg-white border-t border-stone-200 shadow-xl absolute w-full left-0 z-50 overflow-y-auto max-h-[calc(100vh-70px)]">
+          <div className="px-4 pt-4 pb-8 space-y-4">
 
             {/* Opciones Principales */}
             <div className="flex flex-col space-y-4 pb-4 border-b border-stone-100">
@@ -395,7 +395,7 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 text-stone-500 hover:text-emerald-700 font-medium py-2 w-full"
+                className="flex items-center justify-center gap-2 text-stone-600 bg-stone-100 hover:bg-stone-200 hover:text-emerald-700 font-bold py-3.5 w-full rounded-xl transition-all active:scale-[0.98]"
               >
                 <LogOut size={20} />
                 <span>{dict?.logout || 'Cerrar Sesión'}</span>
