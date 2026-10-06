@@ -6,9 +6,11 @@ import { useProgress } from '../context/ProgressContext';
 import { Lugar } from '../data/mockData';
 import { MapPin, CheckCircle2, Navigation2, XCircle, Lock, BookOpen, Flag, PawPrint, X, Info, Eye, Navigation, Award } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import UnlockModal from './UnlockModal';
-
+import SwapPuzzle from './SwapPuzzle';
+import { solvePuzzleAndAwardXP } from '../actions/gamification';
 
 interface PlaceCardProps {
   lugar: Lugar;
@@ -34,7 +36,7 @@ const getProvinceImage = (provinceId: string, progressPercentage: number) => {
 
 export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedState, progressPercentage, rotationClass = '' }: PlaceCardProps) {
   const dict = useDictionary();
-  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate } = (useProgress() as any);
+  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate, estampillas } = (useProgress() as any);
 
   const currentDetails = placeDetails[lugar.id] || { date: '', note: '' };
   const isInBucketList = bucketList?.includes(lugar.id);
@@ -50,15 +52,22 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+  const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleSelectMode = (mode: 'Curioso' | 'Nómada' | 'Conquistador') => {
-    if (handleCheckInWithMode) {
-      handleCheckInWithMode(lugar.id, mode);
-    } else {
-      onCheckIn(lugar.id);
-    }
+  const handleSelectMode = async (mode: 'Curioso' | 'Nómada' | 'Conquistador') => {
     setIsUnlockModalOpen(false);
+    let unlocks = 0;
+    if (handleCheckInWithMode) {
+      unlocks = await handleCheckInWithMode(lugar.id, mode);
+    } else {
+      // @ts-ignore
+      unlocks = await onCheckIn(lugar.id);
+    }
+    
+    if (unlocks === 3) {
+      setIsPuzzleOpen(true);
+    }
   };
   
   useEffect(() => {
@@ -315,6 +324,39 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
           </div>
         </div>
         {communityRatingBlock}
+      {isPuzzleOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsPuzzleOpen(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => setIsPuzzleOpen(false)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <h2 className="text-2xl font-black text-stone-800 tracking-tight text-center mb-6 mt-2">
+              {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
+            </h2>
+            <SwapPuzzle 
+              imageUrl={displayImage} 
+              onSolve={async () => {
+                try {
+                  const profileStr = localStorage.getItem('userProfileData');
+                  const localUsername = profileStr ? JSON.parse(profileStr).username : undefined;
+                  const res = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  if (res?.success && res.xpAwarded > 0) {
+                    toast.success(dict?.categories?.ALL === 'All' ? `You earned ${res.xpAwarded} XP!` : `¡Ganaste ${res.xpAwarded} XP por resolver el puzzle!`, { icon: '🏆' });
+                  } else if (res?.success) {
+                    toast.success(dict?.categories?.ALL === 'All' ? "Puzzle solved!" : "¡Puzzle resuelto!", { icon: '🧩' });
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+                setTimeout(() => setIsPuzzleOpen(false), 2000);
+              }}
+            />
+          </div>
+        </div>
+      )}
       </div>
     );
   }
@@ -383,7 +425,7 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
             "{descToUse}"
           </p>
           
-          {!isDerivedState && (
+          {!isDerivedState && estampillas > 0 && (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -396,6 +438,24 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
               <span className="truncate sm:hidden">{dict?.placeCard?.add || 'Pegar'}</span>
             </button>
           )}
+
+          {!isDerivedState && estampillas === 0 && (
+            <div className="mt-2 sm:mt-3 bg-stone-800/80 p-2.5 sm:p-3 rounded-lg border border-stone-600/50 backdrop-blur-md flex flex-col items-center text-center shadow-lg">
+              <p className="text-stone-200 text-[9px] sm:text-xs leading-snug mb-2 font-medium">
+                {dict?.categories?.ALL === 'All' 
+                  ? "We know your collector hunger wants more! 🦥 You've used your 3 daily tickets, but you'll get 3 new ones tomorrow. Rate the places you discovered today and Otico will give you 1 extra ticket to keep playing!" 
+                  : "¡Sabemos que tu hambre de coleccionista quiere más! 🦥 Ya usaste tus 3 tiquetes de hoy, pero mañana tendrás 3 nuevos. ¡Califica los sitios que descubriste hoy y Otico te regalará 1 tiquete extra para seguir jugando!"}
+              </p>
+              <Link 
+                href={dict?.categories?.ALL === 'All' ? "/en/destinos-visitados" : "/es/destinos-visitados"} 
+                className="w-full py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-stone-900 text-[10px] sm:text-sm font-black rounded transition-colors shadow-sm flex items-center justify-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Award size={14} className="sm:w-4 sm:h-4" />
+                {dict?.categories?.ALL === 'All' ? "Rate a destination" : "Calificar un destino"}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       {communityRatingBlock}
@@ -404,6 +464,39 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
         onClose={() => setIsUnlockModalOpen(false)} 
         onSelectMode={handleSelectMode} 
       />
+      {isPuzzleOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm" onClick={() => setIsPuzzleOpen(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg relative" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => setIsPuzzleOpen(false)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center text-stone-400 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-full transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <h2 className="text-2xl font-black text-stone-800 tracking-tight text-center mb-6 mt-2">
+              {dict?.categories?.ALL === 'All' ? 'Unlock Puzzle!' : '¡Rompecabezas de Desbloqueo!'}
+            </h2>
+            <SwapPuzzle 
+              imageUrl={displayImage} 
+              onSolve={async () => {
+                try {
+                  const profileStr = localStorage.getItem('userProfileData');
+                  const localUsername = profileStr ? JSON.parse(profileStr).username : undefined;
+                  const res = await solvePuzzleAndAwardXP(lugar.id, localUsername);
+                  if (res?.success && res.xpAwarded > 0) {
+                    toast.success(dict?.categories?.ALL === 'All' ? `You earned ${res.xpAwarded} XP!` : `¡Ganaste ${res.xpAwarded} XP por resolver el puzzle!`, { icon: '🏆' });
+                  } else if (res?.success) {
+                    toast.success(dict?.categories?.ALL === 'All' ? "Puzzle solved!" : "¡Puzzle resuelto!", { icon: '🧩' });
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+                setTimeout(() => setIsPuzzleOpen(false), 2000);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

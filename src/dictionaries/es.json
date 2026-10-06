@@ -2,7 +2,7 @@
   "navbar": {
     "searchPlaceholder": "Buscar lugares...",
     "language": "Idioma",
-    "settings": "Configuración",
+    "settings": "Perfil",
     "ourApp": "Nuestra App",
     "destinations": "Destinos",
     "community": "Comunidad",
@@ -11,7 +11,8 @@
     "home": "Inicio",
     "provinces": "Provincias",
     "visitedDestinations": "Mis Destinos Visitados",
-    "upcomingDestinations": "Mis Próximos Destinos"
+    "upcomingDestinations": "Mis Próximos Destinos",
+    "rideAddons": "Complementos de tu ride"
   },
   "communityPage": {
     "title": "Álbum de la Comunidad",
@@ -229,6 +230,7 @@
     "tabSecrets": "Secretos",
     "rulesTitle": "Nuestro Código de Honor",
     "rulesDesc": "En COLECTIKOS no te monitoreamos, no te auditamos y no te seguimos donde vayas con un GPS. Tú eres quien decide cuál modo jugar, y tu propio código de honor es tu guía sobre cuáles postales sientes que puedes desbloquear orgullosamente.\n¡Pura Vida!",
+    "replayTourBtn": "Repetir Tour de Bienvenida",
     "modeCurioso": "Modo Curioso",
     "modeCuriosoQuote": "\"Para los amantes de las postales y la inmediatez.\"",
     "modeCuriosoDesc": "Desbloquea postales en cualquier momento para admirar las ilustraciones.",
@@ -253,6 +255,8 @@
     "instLi2_2": "<strong>Aplica tu Código de Honor:</strong> Si ya cumpliste con los requisitos de tu 'Modo de Juego' para un destino, estás listo para reclamar tu premio.",
     "instLi2_3": "<strong>Añade a tu álbum:</strong> Haz clic en el botón verde 'Añadir al Álbum'. La postal dejará de estar bloqueada, revelando la ilustración a todo color y sumando porcentaje a tu barra de progreso.",
     "instLi2_4": "<strong>Desmarcar postales:</strong> Si desbloqueaste una postal por error, puedes quitarla de tu álbum presionando el círculo rojo con una \"X\" que aparecerá al pasar el cursor sobre la postal completada.",
+    "instLi2_5": "<strong>Límite Diario y Rompecabezas:</strong> Cada día recibes 3 tiquetes (energía) para desbloquear postales. Al usar el tercer tiquete, se activará un rompecabezas especial para ganar más XP.",
+    "instLi2_6": "<strong>Tiquete de Bono:</strong> Si agotas tu energía, califica un destino por primera vez en el día y ganarás 1 tiquete extra de regalo para seguir jugando.",
     "instH2_3": "3. Conquista el Mapa (Postales Provinciales Automáticas)",
     "instP2_3": "Tu esfuerzo tiene recompensas a gran escala. Mientras descubres destinos individuales, el mapa registrará tu dominio sobre cada provincia de Costa Rica.",
     "instLi3_1": "<strong>Desbloqueo automático:</strong> No necesitas hacer clic para reclamar las postales provinciales. El sistema evalúa tu progreso y las desbloquea mágicamente por ti.",

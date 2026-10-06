@@ -2,7 +2,7 @@
   "navbar": {
     "searchPlaceholder": "Search places...",
     "language": "Language",
-    "settings": "Settings",
+    "settings": "Profile",
     "ourApp": "Our App",
     "destinations": "Destinations",
     "community": "Community",
@@ -11,7 +11,8 @@
     "home": "Home",
     "provinces": "Provinces",
     "visitedDestinations": "My Visited Destinations",
-    "upcomingDestinations": "My Upcoming Destinations"
+    "upcomingDestinations": "My Upcoming Destinations",
+    "rideAddons": "Ride Add-ons"
   },
   "communityPage": {
     "title": "Community Album",
@@ -229,6 +230,7 @@
     "tabSecrets": "Secrets",
     "rulesTitle": "Our Code of Honor",
     "rulesDesc": "At COLECTIKOS we don't monitor you, we don't audit you, and we don't track you with a GPS. You decide which mode to play, and your own code of honor is your guide to which postcards you feel you can proudly unlock.\nPura Vida!",
+    "replayTourBtn": "Replay Welcome Tour",
     "modeCurioso": "Curious Mode",
     "modeCuriosoQuote": "\"For lovers of postcards and immediacy.\"",
     "modeCuriosoDesc": "Unlock postcards at any time to admire the illustrations.",
@@ -253,6 +255,8 @@
     "instLi2_2": "<strong>Apply your Code of Honor:</strong> If you have met the requirements of your 'Game Mode' for a destination, you are ready to claim your prize.",
     "instLi2_3": "<strong>Add to your album:</strong> Click the green 'Add to Album' button. The postcard will unlock, revealing the full-color illustration and adding percentage to your progress bar.",
     "instLi2_4": "<strong>Uncheck postcards:</strong> If you unlocked a postcard by mistake, you can remove it from your album by pressing the red circle with an \"X\" that appears when you hover over the completed postcard.",
+    "instLi2_5": "<strong>Daily Limit & Puzzle:</strong> Every day you receive 3 tickets (energy) to unlock postcards. When you use your 3rd ticket, a special puzzle will activate to earn more XP.",
+    "instLi2_6": "<strong>Bonus Ticket:</strong> If you run out of energy, rate a destination for the first time today to earn 1 extra bonus ticket and keep playing.",
     "instH2_3": "3. Conquer the Map (Automatic Provincial Postcards)",
     "instP2_3": "Your effort has large-scale rewards. As you discover individual destinations, the map will record your dominance over each province of Costa Rica.",
     "instLi3_1": "<strong>Automatic unlock:</strong> You don't need to click to claim provincial postcards. The system evaluates your progress and magically unlocks them for you.",

@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const mailOptions = {
       from: `"${nombre} (Colectikos)" <${SMTP_USER}>`,
       replyTo: email,
-      to: process.env.CONTACT_RECEIVER_EMAIL || 'soporte@colectikos.com',
+      to: process.env.CONTACT_RECEIVER_EMAIL || 'redes@colectikos.com',
       subject: `Nuevo mensaje de Colectikos: ${motivo}`,
       text: `Nombre: ${nombre}\nEmail: ${email}\nTeléfono: ${telefono || 'No proporcionado'}\nMotivo: ${motivo}\n\nMensaje:\n${comentarios}`,
       html: `

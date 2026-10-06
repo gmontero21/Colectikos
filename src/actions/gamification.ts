@@ -85,6 +85,32 @@ export async function ensureDbUser(localUsername?: string, fallbackClerkId?: str
   return null;
 }
 
+export async function checkAndResetStamps(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return null;
+
+  const now = new Date();
+  const lastDate = new Date(user.ultimaFechaEstampillas);
+  
+  const isSameDay = 
+    now.getFullYear() === lastDate.getFullYear() &&
+    now.getMonth() === lastDate.getMonth() &&
+    now.getDate() === lastDate.getDate();
+
+  if (!isSameDay) {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        estampillasDisponibles: 3,
+        ultimaFechaEstampillas: now
+      }
+    });
+    return updatedUser;
+  }
+
+  return user;
+}
+
 /**
  * Registra la visita a un lugar y otorga XP según las reglas anti-farming y anti-speedrunners.
  * @param lugarId ID del lugar descubierto.
@@ -100,6 +126,16 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
     }
 
     const userId = dbUser.id;
+
+    // 1.5 Verificar y Resetear Estampillas
+    const activeUser = await checkAndResetStamps(userId);
+    if (!activeUser) {
+      return { success: false, error: 'Error obteniendo datos del usuario' };
+    }
+    
+    if (activeUser.estampillasDisponibles <= 0) {
+      return { success: false, error: 'no_energy' };
+    }
 
     // 2. Ejecutar Transacción Segura
     const result = await prisma.$transaction(async (tx: any) => {
@@ -150,7 +186,7 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 
       if (existingLog) {
         // Ya ganó XP por este lugar antes
-        return { success: true, xpAwarded: 0, newTotalXp: dbUser!.xp, newLevel: dbUser!.level, limitReached: false };
+        return { success: true, xpAwarded: 0, newTotalXp: dbUser!.xp, newLevel: dbUser!.level, limitReached: false, unlocksToday: 0 };
       }
 
       // Reglas Anti-Speedrunners: Contar cuantas postales ha desbloqueado HOY
@@ -193,18 +229,20 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
             xpAwarded
           }
         });
-
-        // Actualizar Usuario
-        await tx.user.update({
-          where: { id: userId },
-          data: {
-            xp: newTotalXp,
-            level: newLevel
-          }
-        });
       }
 
-      return { success: true, xpAwarded, newTotalXp, newLevel, limitReached };
+      // Siempre actualizamos al usuario porque gasta 1 estampilla al desbloquear
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          xp: newTotalXp,
+          level: newLevel,
+          estampillasDisponibles: activeUser.estampillasDisponibles - 1,
+          ultimaFechaEstampillas: new Date()
+        }
+      });
+
+      return { success: true, xpAwarded, newTotalXp, newLevel, limitReached, unlocksToday: unlocksToday + 1 };
     });
 
     return result;
@@ -218,11 +256,14 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 export async function getUserGamification(localUsername?: string, fallbackClerkId?: string) {
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
-    if (!dbUser) return { xp: 0, level: 1 };
+    if (!dbUser) return { xp: 0, level: 1, estampillas: 0 };
 
-    return { xp: dbUser.xp, level: dbUser.level };
+    const activeUser = await checkAndResetStamps(dbUser.id);
+    if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0 };
+
+    return { xp: activeUser.xp, level: activeUser.level, estampillas: activeUser.estampillasDisponibles };
   } catch (error) {
-    return { xp: 0, level: 1 };
+    return { xp: 0, level: 1, estampillas: 0 };
   }
 }
 
@@ -329,7 +370,27 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
         });
       }
 
-      return { success: true, xpAwarded, newTotalXp, newLevel, limitReached };
+      // Lógica de Tiquete de Bono
+      let bonusAwarded = false;
+      const now = new Date();
+      const lastBonusDate = dbUser.fechaBonoTicket ? new Date(dbUser.fechaBonoTicket) : null;
+      const isBonusSameDay = lastBonusDate &&
+        now.getFullYear() === lastBonusDate.getFullYear() &&
+        now.getMonth() === lastBonusDate.getMonth() &&
+        now.getDate() === lastBonusDate.getDate();
+
+      if (!isBonusSameDay) {
+        bonusAwarded = true;
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            estampillasDisponibles: { increment: 1 },
+            fechaBonoTicket: now
+          }
+        });
+      }
+
+      return { success: true, xpAwarded, newTotalXp, newLevel, limitReached, bonusAwarded };
     });
 
     return result;
@@ -393,8 +454,15 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
         xpAwarded = 10;
       }
 
+      let streakBonus = 0;
+      if (newStreak === 5) streakBonus = 50;
+      else if (newStreak === 10) streakBonus = 100;
+      else if (newStreak === 15) streakBonus = 150;
+      else if (newStreak === 20) streakBonus = 200;
+
       const newLongestStreak = Math.max(user.longestStreak, newStreak);
-      const newTotalXp = user.xp + xpAwarded;
+      const totalXpEarned = xpAwarded + streakBonus;
+      const newTotalXp = user.xp + totalXpEarned;
       const newLevel = Math.floor(newTotalXp / 100) + 1;
 
       await tx.userActionLog.create({
@@ -402,7 +470,7 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
           userId,
           actionType: 'DAILY_LOGIN',
           targetId: 'daily_login',
-          xpAwarded
+          xpAwarded: totalXpEarned
         }
       });
 
@@ -412,14 +480,17 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
           currentStreak: newStreak,
           longestStreak: newLongestStreak,
           lastLoginDate: now,
-          xp: newTotalXp,
+          xp: { increment: totalXpEarned },
           level: newLevel
         }
       });
 
       return { 
-        success: true, 
-        xpAwarded, 
+        success: true,
+        streakUpdated: true,
+        newStreak,
+        bonusAwarded: streakBonus,
+        xpAwarded: totalXpEarned, 
         currentStreak: newStreak, 
         newTotalXp, 
         newLevel 
@@ -431,5 +502,59 @@ export async function recordDailyLogin(localUsername?: string, fallbackClerkId?:
   } catch (error: any) {
     console.error("Error en recordDailyLogin:", error);
     return { success: false, error: error.message || 'Ocurrió un error al registrar el ingreso' };
+  }
+}
+
+/**
+ * Registra que el usuario resolvió el rompecabezas diario y le otorga 30 XP.
+ */
+export async function solvePuzzleAndAwardXP(lugarId: string, localUsername?: string, fallbackClerkId?: string) {
+  try {
+    const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
+    if (!dbUser) {
+      return { success: false, error: 'Usuario no autenticado o imposible de sincronizar con BD' };
+    }
+
+    const userId = dbUser.id;
+
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Verificar si ya ganó XP por resolver el puzzle de este lugar
+      const existingLog = await tx.userActionLog.findFirst({
+        where: {
+          userId,
+          actionType: 'SOLVE_PUZZLE',
+          targetId: lugarId
+        }
+      });
+
+      if (existingLog) {
+        return { success: true, xpAwarded: 0, newTotalXp: dbUser.xp, newLevel: dbUser.level, limitReached: true };
+      }
+
+      const xpAwarded = 30;
+      let newTotalXp = dbUser.xp + xpAwarded;
+      let newLevel = Math.floor(newTotalXp / 100) + 1;
+
+      await tx.userActionLog.create({
+        data: {
+          userId,
+          actionType: 'SOLVE_PUZZLE',
+          targetId: lugarId,
+          xpAwarded
+        }
+      });
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { xp: newTotalXp, level: newLevel }
+      });
+
+      return { success: true, xpAwarded, newTotalXp, newLevel, limitReached: false };
+    });
+
+    return result;
+  } catch (error: any) {
+    console.error("Error en solvePuzzleAndAwardXP:", error);
+    return { success: false, error: error.message || 'Ocurrió un error al otorgar XP por el puzzle' };
   }
 }

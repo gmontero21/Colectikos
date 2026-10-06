@@ -10,6 +10,7 @@ import { mockLugares } from '../data/mockData';
 import { calcularNivel } from '../utils/gamification';
 import { useProgress } from '../context/ProgressContext';
 import SearchBar from './SearchBar';
+import EnergyTracker from './EnergyTracker';
 import toast from 'react-hot-toast';
 
 export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: any }) {
@@ -134,6 +135,7 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
 
             {/* Nivel Superior (Secundario) */}
             <div className="flex items-center gap-6 mb-2 mt-3 border-b border-stone-100 pb-2 w-full justify-end">
+              <EnergyTracker />
               {/* Buscador Integrado */}
               <SearchBar lugares={mockLugares} />
 
@@ -165,34 +167,34 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
               {/* Configuración */}
               <Link href="/settings" className="flex items-center gap-1.5 text-stone-500 hover:text-emerald-700 cursor-pointer transition-colors text-sm font-medium group relative py-2">
                 <Settings size={16} />
-                <span>{dict?.settings || 'Configuración'}</span>
+                <span>{dict?.settings || 'Perfil'}</span>
               </Link>
 
               <div className="w-px h-5 bg-stone-300 mx-2"></div>
 
               {/* Funcionalidad Preservada: Perfil de Usuario con Nivel XP */}
-              <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+              <Link id="tour-profile" href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
                 <div className="text-right flex flex-col items-end justify-center">
                   <div className="flex items-center gap-1.5">
                     {currentStreak > 0 && (
-                      <span className="flex items-center text-[10px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/50 shadow-sm" title={`Racha de ${currentStreak} días seguidos`}>
+                      <span id="tour-streak" className="flex items-center text-[10px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/50 shadow-sm" title={`Racha de ${currentStreak} días seguidos`}>
                         {currentStreak} <span className="ml-0.5 opacity-90">🔥</span>
                       </span>
                     )}
                     <p className="text-sm font-bold text-stone-800 whitespace-nowrap">{username}</p>
                   </div>
-                  <p className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{globalTitle} - {xp} XP</p>
+                  <p id="tour-xp" className="text-xs font-semibold text-emerald-600 whitespace-nowrap">{globalTitle} - {xp} XP</p>
                 </div>
                 <div className="relative">
                   {avatarUrl ? (
-                    <div className="w-8 h-8 relative rounded-full overflow-hidden border border-stone-200">
+                    <div id="tour-avatar" className="w-8 h-8 relative rounded-full overflow-hidden border border-stone-200">
                       <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <UserCircle size={32} className="text-stone-300" />
+                    <UserCircle id="tour-avatar" size={32} className="text-stone-300" />
                   )}
                   {/* Mini-Indicador de Nivel */}
-                  <div className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-900 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
+                  <div id="tour-level" className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-900 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
                     {level}
                   </div>
                 </div>
@@ -238,9 +240,15 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                     </Link>
                     <Link
                       href={`/${currentLang}/proximos-destinos`}
-                      className="px-4 py-2 text-left w-full transition-colors hover:bg-stone-50 hover:text-emerald-700 text-stone-700 font-medium"
+                      className="px-4 py-2 text-left w-full transition-colors hover:bg-stone-50 hover:text-emerald-700 text-stone-700 font-medium border-b border-stone-50"
                     >
                       {dict?.upcomingDestinations || 'Mis Próximos Destinos'}
+                    </Link>
+                    <Link
+                      href={`/${currentLang}/destinos/complementos`}
+                      className="px-4 py-2 text-left w-full transition-colors hover:bg-stone-50 hover:text-emerald-700 text-stone-700 font-medium"
+                    >
+                      {dict?.rideAddons || 'Complementos de tu ride'}
                     </Link>
                   </div>
                 </div>
@@ -251,25 +259,25 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
 
           </div>
 
-          {/* Menú Hamburguesa (Mobile) */}
           <div className="lg:hidden flex items-center gap-4">
+            <EnergyTracker />
             {/* Racha Móvil */}
             {currentStreak > 0 && (
-              <div className="flex items-center text-[10px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/50 shadow-sm" title={`Racha de ${currentStreak} días`}>
+              <div id="tour-streak-mobile" className="flex items-center text-[10px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/50 shadow-sm" title={`Racha de ${currentStreak} días`}>
                 {currentStreak} <span className="ml-0.5 opacity-90">🔥</span>
               </div>
             )}
             {/* Perfil minimizado en móvil con Nivel */}
-            <Link href="/profile" className="flex items-center hover:opacity-80 transition-opacity cursor-pointer relative">
+            <Link id="tour-profile-mobile" href="/profile" className="flex items-center hover:opacity-80 transition-opacity cursor-pointer relative">
               {avatarUrl ? (
-                <div className="w-8 h-8 relative rounded-full overflow-hidden border border-stone-200">
+                <div id="tour-avatar-mobile" className="w-8 h-8 relative rounded-full overflow-hidden border border-stone-200">
                   <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <UserCircle size={32} className="text-stone-300" />
+                <UserCircle id="tour-avatar-mobile" size={32} className="text-stone-300" />
               )}
               {/* Mini-Indicador de Nivel (Mobile) */}
-              <div className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-900 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
+              <div id="tour-level-mobile" className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-900 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">
                 {level}
               </div>
             </Link>
@@ -310,6 +318,9 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                   </Link>
                   <Link href={`/${currentLang}/proximos-destinos`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-600 font-medium hover:text-emerald-700 block text-base">
                     {dict?.upcomingDestinations || 'Mis Próximos Destinos'}
+                  </Link>
+                  <Link href={`/${currentLang}/destinos/complementos`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-600 font-medium hover:text-emerald-700 block text-base">
+                    {dict?.rideAddons || 'Complementos de tu ride'}
                   </Link>
                 </div>
               </div>
@@ -363,7 +374,7 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
               </div>
               <Link href="/settings" className="flex items-center gap-3 text-stone-600 hover:text-emerald-700 cursor-pointer font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                 <Settings size={20} />
-                <span>{dict?.settings || 'Configuración'}</span>
+                <span>{dict?.settings || 'Perfil'}</span>
               </Link>
             </div>
 

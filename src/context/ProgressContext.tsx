@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import LevelUpModal from '../components/LevelUpModal';
+import StreakCelebrationModal from '../components/StreakCelebrationModal';
 import NudgeToast from '../components/NudgeToast';
 import { calcularNivel } from '../utils/gamification';
 import { mockLugares } from '../data/mockData';
@@ -16,8 +17,8 @@ interface ProgressContextType {
   completedPlaces: string[];
   placeDetails: Record<string, { date: string; note: string }>;
   unlockModes: Record<string, string>;
-  handleCheckIn: (id: string) => void;
-  handleCheckInWithMode: (id: string, mode: string) => void;
+  handleCheckIn: (id: string) => Promise<number>;
+  handleCheckInWithMode: (id: string, mode: string) => Promise<number>;
   updatePlaceDetails: (id: string, date: string, note: string) => void;
   bucketList: string[];
   toggleBucketList: (id: string) => void;
@@ -25,8 +26,11 @@ interface ProgressContextType {
   xp: number;
   level: number;
   currentStreak: number;
+  estampillas: number;
   handleRate: (id: string, score: number) => Promise<void>;
   userProfile: any;
+  showTour: boolean;
+  setShowTour: (val: boolean) => void;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -42,6 +46,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newRankTitle, setNewRankTitle] = useState('');
+  const [showStreakModal, setShowStreakModal] = useState(false);
+  const [streakMilestone, setStreakMilestone] = useState(0);
   const [showNudge, setShowNudge] = useState(false);
   const [nudgeMessage, setNudgeMessage] = useState('');
   const [pendingNudge, setPendingNudge] = useState<string | null>(null);
@@ -49,7 +55,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [estampillas, setEstampillas] = useState(3);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [showTour, setShowTour] = useState(false);
 
   const { user, isLoaded: clerkLoaded } = useUser();
   const dict = useDictionary();
@@ -156,6 +164,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         if (gamificationData) {
           setXp(gamificationData.xp);
           setLevel(gamificationData.level);
+          setEstampillas(gamificationData.estampillas);
         }
       } catch (e) {
         console.error("Error fetching gamification data", e);
@@ -225,6 +234,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
           if (loginRes?.success) {
             setCurrentStreak(loginRes.currentStreak || 0);
             
+            // Trigger Milestone Celebration
+            if (loginRes.streakUpdated && [5, 10, 15, 20].includes(loginRes.currentStreak)) {
+              setStreakMilestone(loginRes.currentStreak);
+              setShowStreakModal(true);
+            }
+            
             if (loginRes.xpAwarded && loginRes.xpAwarded > 0) {
               if ('newTotalXp' in loginRes && loginRes.newTotalXp !== undefined) {
                 setXp(loginRes.newTotalXp);
@@ -273,9 +288,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const handleCheckInWithMode = (id: string, mode: string) => {
+  const handleCheckInWithMode = async (id: string, mode: string) => {
     setUnlockModes(prev => ({ ...prev, [id]: mode }));
-    handleCheckIn(id, mode);
+    return await handleCheckIn(id, mode);
   };
 
   const handleRate = async (id: string, score: number) => {
@@ -295,6 +310,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       const res = await rateAndAwardXP(id, score, localUsername, user?.id);
       
       if (res.success && 'xpAwarded' in res) {
+        if (res.bonusAwarded) {
+          setEstampillas(prev => prev + 1);
+          const bonusMsg = dict?.categories?.ALL === 'All' 
+            ? "🎟️ Otico gave you a Bonus Ticket for reviewing today!" 
+            : "🎟️ ¡Otico te regaló un Tiquete de Bono por tu reseña de hoy!";
+          sonnerToast.success(bonusMsg, { duration: 6000 });
+        }
+
         if (res.xpAwarded && res.xpAwarded > 0) {
           setXp(res.newTotalXp || xp);
           setLevel(res.newLevel || level);
@@ -446,7 +469,17 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
               duration: 8000
             });
           }
+          setCompletedPlaces(newState);
+          setEstampillas(prev => prev - 1);
+          return res.unlocksToday;
         } else if (!res.success && 'error' in res) {
+          if (res.error === 'no_energy') {
+            const noEnergyMsg = dict?.categories?.ALL === 'All' 
+              ? "Otico is taking a nap. Come back tomorrow to get 3 new stamps." 
+              : "Otico está tomando una siesta. Vuelve mañana para recibir 3 estampillas nuevas.";
+            sonnerToast.error(noEnergyMsg, { icon: '💤', duration: 5000 });
+            return 0; // aborta y no añade al album
+          }
           console.error("checkInAndAwardXP Error:", res.error);
           sonnerToast.error(`Error: ${res.error}`);
         }
@@ -457,6 +490,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     }
 
     setCompletedPlaces(newState);
+    return 0;
   };
 
   const updatePlaceDetails = async (id: string, date: string, note: string) => {
@@ -491,7 +525,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, handleRate, userProfile }}>
+    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, handleRate, userProfile, showTour, setShowTour }}>
       {children}
       <LevelUpModal 
         isOpen={showLevelUp} 
@@ -506,6 +540,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
           }
         }} 
         newRank={newRankTitle}
+      />
+      <StreakCelebrationModal
+        isOpen={showStreakModal}
+        onClose={() => setShowStreakModal(false)}
+        streak={streakMilestone}
       />
       <NudgeToast 
         isVisible={showNudge} 

@@ -8,10 +8,14 @@ import { useDictionary } from '../../../context/DictionaryContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../../../utils/getLugares';
 import { Calendar, Compass } from 'lucide-react'; 
 import { Drawer } from 'vaul';
+import SponsorCard from '../../../components/SponsorCard';
+import { getSponsorsForDestination } from '../../../actions/sponsors';
 
 export default function ProximosDestinosPage() {
   const [activeDestinationId, setActiveDestinationId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [matchingSponsors, setMatchingSponsors] = useState<any[]>([]);
+  const [isLoadingSponsors, setIsLoadingSponsors] = useState(false);
 
   const { completedPlaces, handleCheckIn, bucketList } = useProgress();
   const dict = useDictionary();
@@ -21,6 +25,37 @@ export default function ProximosDestinosPage() {
   const activeDestination = activeDestinationId 
     ? localizedLugares.find(l => l.id === activeDestinationId) 
     : null;
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchSponsors() {
+      console.log("fetchSponsors called for", activeDestinationId);
+      if (activeDestinationId && activeDestination) {
+        setIsLoadingSponsors(true);
+        try {
+          const result = await getSponsorsForDestination(
+            activeDestination.id, 
+            activeDestination.nombre,
+            activeDestination.latitude || null, 
+            activeDestination.longitude || null
+          );
+          console.log("Fetched matching sponsors:", result);
+          if (isMounted) setMatchingSponsors(result);
+        } catch (e) {
+          console.error("Error fetching sponsors:", e);
+          if (isMounted) setMatchingSponsors([]);
+        } finally {
+          if (isMounted) setIsLoadingSponsors(false);
+        }
+      } else {
+        if (isMounted) setMatchingSponsors([]);
+      }
+    }
+    fetchSponsors();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeDestinationId, activeDestination?.latitude, activeDestination?.longitude]);
 
   // Calcular el progreso por provincia para el mapa / tarjetas
   const progressData: Record<string, { completed: number; total: number; percentage: number }> = {};
@@ -113,69 +148,40 @@ export default function ProximosDestinosPage() {
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-20 hidden lg:block">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* Itinerario Sugerido Placeholder */}
-          <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-stone-200 shadow-sm relative overflow-hidden">
-            {/* TODO: Inyectar dinámicamente itinerarios patrocinados aquí en el futuro */}
-            <div className="flex items-center gap-3 mb-6">
-              <Calendar className="text-emerald-600" size={24} />
-              <h3 className="text-xl font-bold text-stone-800">
-                Itinerario Sugerido (1 Día / Fin de Semana) {activeDestination ? `- ${activeDestination.nombre}` : ''}
-              </h3>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex gap-4 items-start opacity-60 animate-pulse">
-                <div className="w-12 h-12 bg-stone-200 rounded-full flex-shrink-0"></div>
-                <div className="flex-1 space-y-2 py-1">
-                  <div className="h-4 bg-stone-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-stone-200 rounded w-1/2"></div>
-                </div>
+          {/* Cross-Selling / Complementos del Ride */}
+          {activeDestination && (
+            <div className="col-span-1 lg:col-span-3">
+              <div className="flex flex-col mb-6">
+                <h3 className="text-2xl font-bold text-stone-800 flex items-center gap-3">
+                  <span className="text-emerald-500">✨</span> 
+                  {dict?.home?.addonsTitle || 'Complementos de tu ride a'} {activeDestination.nombre}
+                </h3>
+                <p className="text-stone-500 mt-1">Negocios y paradas recomendadas en tu ruta</p>
               </div>
-              <div className="flex gap-4 items-start opacity-50 animate-pulse">
-                <div className="w-12 h-12 bg-stone-200 rounded-full flex-shrink-0"></div>
-                <div className="flex-1 space-y-2 py-1">
-                  <div className="h-4 bg-stone-200 rounded w-2/3"></div>
-                  <div className="h-3 bg-stone-200 rounded w-2/5"></div>
-                </div>
-              </div>
-              <div className="flex gap-4 items-start opacity-40 animate-pulse">
-                <div className="w-12 h-12 bg-stone-200 rounded-full flex-shrink-0"></div>
-                <div className="flex-1 space-y-2 py-1">
-                  <div className="h-4 bg-stone-200 rounded w-4/5"></div>
-                  <div className="h-3 bg-stone-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center pb-8 pointer-events-none">
-              <span className="bg-emerald-100 text-emerald-800 text-sm font-semibold px-4 py-2 rounded-full shadow-sm">
-                Próximamente: Rutas Patrocinadas
-              </span>
-            </div>
-          </div>
 
-          {/* Recomendaciones Locales Placeholder */}
-          <div className="bg-white rounded-xl p-6 border border-stone-200 shadow-sm relative overflow-hidden">
-            {/* TODO: Inyectar dinámicamente negocios patrocinadores aquí en el futuro */}
-            <div className="flex items-center gap-3 mb-6">
-              <Compass className="text-blue-600" size={24} />
-              <h3 className="text-xl font-bold text-stone-800">
-                Recomendaciones en {activeDestination?.nombre || 'la Zona'}
-              </h3>
+              {isLoadingSponsors ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="h-64 bg-stone-200/60 rounded-2xl animate-pulse border border-stone-100"></div>
+                  <div className="h-64 bg-stone-200/60 rounded-2xl animate-pulse border border-stone-100 hidden md:block"></div>
+                  <div className="h-64 bg-stone-200/60 rounded-2xl animate-pulse border border-stone-100 hidden lg:block"></div>
+                </div>
+              ) : matchingSponsors.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {matchingSponsors.map((sponsor) => (
+                    <SponsorCard key={sponsor.id} sponsor={sponsor} lang={lang} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center p-12 bg-white/50 backdrop-blur-sm rounded-2xl border border-stone-200 shadow-sm">
+                  <span className="text-4xl mb-4 opacity-40">🧭</span>
+                  <h4 className="text-lg font-bold text-stone-700">Aún no hay recomendaciones</h4>
+                  <p className="text-stone-500 mt-2 max-w-md">
+                    Pronto agregaremos restaurantes, hoteles y paradas clave recomendadas para tu viaje a {activeDestination.nombre}.
+                  </p>
+                </div>
+              )}
             </div>
-            
-            <div className="space-y-4">
-              <div className="h-24 bg-stone-200 rounded-lg animate-pulse opacity-60"></div>
-              <div className="h-24 bg-stone-200 rounded-lg animate-pulse opacity-50"></div>
-            </div>
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center pb-8 pointer-events-none">
-              <span className="bg-blue-100 text-blue-800 text-sm font-semibold px-4 py-2 rounded-full shadow-sm">
-                Restaurantes y Hoteles
-              </span>
-            </div>
-          </div>
-
+          )}
         </div>
       </section>
 
@@ -192,55 +198,38 @@ export default function ProximosDestinosPage() {
                   {activeDestination?.nombre || 'Detalles del Destino'}
                 </h2>
                 
-                {/* Itinerario Sugerido Placeholder */}
-                <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm relative overflow-hidden mb-5">
-                  <div className="flex items-center gap-3 mb-5">
-                    <Calendar className="text-emerald-600" size={20} />
-                    <h3 className="text-lg font-bold text-stone-800">Itinerario Sugerido (1 Día)</h3>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex gap-3 items-start opacity-60 animate-pulse">
-                      <div className="w-10 h-10 bg-stone-200 rounded-full flex-shrink-0"></div>
-                      <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 bg-stone-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-stone-200 rounded w-1/2"></div>
-                      </div>
+                {/* Cross-Selling / Complementos del Ride */}
+                {activeDestination && (
+                  <div className="mb-5 mt-2">
+                    <div className="flex flex-col mb-4 px-1">
+                      <h3 className="text-xl font-bold text-stone-800 flex items-center gap-2">
+                        <span className="text-emerald-500">✨</span> 
+                        {dict?.home?.addonsTitle || 'Complementos del ride'}
+                      </h3>
+                      <p className="text-sm text-stone-500 mt-1">Negocios y paradas recomendadas</p>
                     </div>
-                    <div className="flex gap-3 items-start opacity-50 animate-pulse">
-                      <div className="w-10 h-10 bg-stone-200 rounded-full flex-shrink-0"></div>
-                      <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 bg-stone-200 rounded w-2/3"></div>
-                        <div className="h-3 bg-stone-200 rounded w-2/5"></div>
+                    
+                    {isLoadingSponsors ? (
+                      <div className="space-y-4">
+                        <div className="h-64 bg-stone-200/60 rounded-2xl animate-pulse border border-stone-100"></div>
                       </div>
-                    </div>
+                    ) : matchingSponsors.length > 0 ? (
+                      <div className="space-y-4">
+                        {matchingSponsors.map((sponsor) => (
+                          <SponsorCard key={sponsor.id} sponsor={sponsor} lang={lang} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center p-8 bg-stone-50 rounded-2xl border border-stone-200 shadow-sm">
+                        <span className="text-3xl mb-3 opacity-40">🧭</span>
+                        <h4 className="text-base font-bold text-stone-700">Aún no hay recomendaciones</h4>
+                        <p className="text-xs text-stone-500 mt-1">
+                          Pronto agregaremos paradas recomendadas para tu viaje.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center pb-6 pointer-events-none">
-                    <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
-                      Próximamente: Rutas Patrocinadas
-                    </span>
-                  </div>
-                </div>
-
-                {/* Recomendaciones Locales Placeholder */}
-                <div className="bg-white rounded-xl p-5 border border-stone-200 shadow-sm relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-5">
-                    <Compass className="text-blue-600" size={20} />
-                    <h3 className="text-lg font-bold text-stone-800">Recomendaciones Locales</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="h-20 bg-stone-200 rounded-lg animate-pulse opacity-60"></div>
-                    <div className="h-20 bg-stone-200 rounded-lg animate-pulse opacity-50"></div>
-                  </div>
-                  
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent flex items-end justify-center pb-6 pointer-events-none">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
-                      Restaurantes y Hoteles
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </Drawer.Content>

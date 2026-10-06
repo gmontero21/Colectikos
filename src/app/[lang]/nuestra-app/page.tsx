@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { Eye, Map, Mountain, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, Map, Mountain, ChevronDown, ChevronUp, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useDictionary } from '../../../context/DictionaryContext';
+import { useProgress } from '../../../context/ProgressContext';
 
 type Tab = 'reglas' | 'instrucciones' | 'historia' | 'faq';
 
@@ -62,6 +63,7 @@ function AccordionItem({ title, children }: AccordionItemProps) {
 function NuestraAppContent() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { setShowTour } = useProgress();
   const lang = params.lang || 'es';
   
   const tabParam = searchParams.get('tab') as Tab;
@@ -312,9 +314,20 @@ function NuestraAppContent() {
               
               <div>
                 <h3 className="text-2xl font-serif italic text-emerald-900 mb-3">{formatColectikos(t.instH1)}</h3>
-                <p className="text-stone-700 leading-relaxed">
+                <p className="text-stone-700 leading-relaxed mb-4">
                   {formatColectikos(t.instP1)}
                 </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowTour(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors rounded-full font-medium text-sm shadow-sm"
+                >
+                  <PlayCircle size={18} />
+                  {t.replayTourBtn || 'Repetir Tour de Bienvenida'}
+                </button>
               </div>
 
               <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl space-y-4">
@@ -352,6 +365,8 @@ function NuestraAppContent() {
                     <li dangerouslySetInnerHTML={{ __html: t.instLi2_2 }}></li>
                     <li dangerouslySetInnerHTML={{ __html: t.instLi2_3 }}></li>
                     <li dangerouslySetInnerHTML={{ __html: t.instLi2_4 }}></li>
+                    {t.instLi2_5 && <li dangerouslySetInnerHTML={{ __html: t.instLi2_5 }}></li>}
+                    {t.instLi2_6 && <li dangerouslySetInnerHTML={{ __html: t.instLi2_6 }}></li>}
                   </ul>
                 </div>
               </AccordionItem>

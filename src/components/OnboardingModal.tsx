@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
+import { useProgress } from '../context/ProgressContext';
 import { 
   X, 
   Map, 
@@ -18,7 +19,9 @@ import {
   Lightbulb,
   Settings,
   Trophy,
-  Sparkles
+  Sparkles,
+  Flame,
+  Star
 } from 'lucide-react';
 
 const getSteps = (isEnglish: boolean, username: string) => [
@@ -51,7 +54,7 @@ const getSteps = (isEnglish: boolean, username: string) => [
   {
     id: 4,
     title: isEnglish ? 'Unlock Stickers' : 'Desbloquear Postales',
-    desc: isEnglish ? 'Unlock the stickers of the destinations you have seen or visited. The province stickers will be colored in bronze, silver, or gold, depending on your progress.' : 'Desbloqueá las postales de los destinos que hayas visto o visitado. Las postales de las provincias se irán coloreando de bronce, plata u oro, dependiendo de tu avance',
+    desc: isEnglish ? 'Every day, Otico will give you 3 tickets to unlock postcards. By solving the puzzle you will earn extra XP, and if you leave a review on your destinations, you will earn 1 additional ticket per day!' : 'Cada día, Otico te dará 3 tiquetes para desbloquear postales. Al armar el rompecabezas ganarás XP extra, y si dejas una reseña en tus destinos, ¡ganarás 1 tiquete adicional al día!',
     tip: isEnglish ? 'Every sticker brings you closer to 100%!' : '¡Cada postal te acerca al 100%!',
     icon: <Unlock className="w-8 h-8 text-amber-600" />,
     iconBg: 'bg-amber-100'
@@ -82,6 +85,22 @@ const getSteps = (isEnglish: boolean, username: string) => [
   },
   {
     id: 8,
+    title: isEnglish ? 'Keep the flame alive!' : '¡Mantén la llama encendida!',
+    desc: isEnglish ? 'The number next to the flame indicates your consecutive days logging into the app. If you log in every day without failing, the streak will grow. Reach streaks of 5, 10, 15 or 20 days in a row to earn extra XP bonuses!' : 'El número junto a la llamita indica tus días consecutivos entrando a la app. Si entras todos los días sin fallar, la racha crecerá. ¡Alcanza rachas de 5, 10, 15 o 20 días seguidos para ganar bonos extra de XPs!',
+    tip: isEnglish ? 'Daily consistency is rewarded' : 'La constancia diaria tiene su recompensa',
+    icon: <Flame className="w-8 h-8 text-red-600" />,
+    iconBg: 'bg-red-100'
+  },
+  {
+    id: 9,
+    title: isEnglish ? 'Level up' : 'Sube de nivel',
+    desc: isEnglish ? 'Earn Experience Points (XP) by unlocking new postcards and maintaining your streaks. The more XP you accumulate, the faster your collector level, indicated in the yellow circle on your avatar, will rise.' : 'Gana Puntos de Experiencia (XP) al desbloquear nuevas postales y mantener tus rachas. Entre más XP acumules, más rápido subirá tu nivel de coleccionista indicado en el círculo amarillo de tu avatar.',
+    tip: isEnglish ? 'More XP = Higher collector level' : 'Más XP = Mayor nivel de coleccionista',
+    icon: <Star className="w-8 h-8 text-yellow-600" />,
+    iconBg: 'bg-yellow-100'
+  },
+  {
+    id: 10,
     title: isEnglish ? 'Urban Legend' : 'Leyenda Urbana',
     desc: isEnglish ? 'Legend has it that the Colectikos Album will keep growing. New destinations, new stickers to collect, new categories, and lots of healthy competition for the top spots in the rankings. Best of all, the Community will choose which destinations deserve a sticker in the album.' : 'Dice la leyenda que el Álbum de Colectikos seguirá creciendo. Nuevos destinos, nuevas postales para coleccionar, nuevas categorías y mucha competencia sana por los puestos de honor en los rankings. Lo mejor de todo es que la Comunidad es la que escogerá cuáles destinos merecen una postal en el álbum.',
     tip: isEnglish ? 'On your marks... get set... go explore!' : 'En sus marcas... listos... ¡a pasear!',
@@ -89,7 +108,7 @@ const getSteps = (isEnglish: boolean, username: string) => [
     iconBg: 'bg-yellow-100'
   },
   {
-    id: 9,
+    id: 11,
     title: isEnglish ? 'Ready to explore!' : '¡Listo para explorar!',
     desc: isEnglish ? 'You are now ready to start filling your album and supporting national tourism. Let the adventure begin!' : 'Ya estás preparado para empezar a llenar tu álbum y apoyar el turismo nacional. ¡Que empiece la aventura!',
     tip: isEnglish ? 'Pura vida!' : '¡Pura vida!',
@@ -99,28 +118,32 @@ const getSteps = (isEnglish: boolean, username: string) => [
 ];
 
 export default function OnboardingModal() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { showTour, setShowTour } = useProgress();
   const [currentStep, setCurrentStep] = useState(0);
-  const [isEnglish, setIsEnglish] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const { user } = useUser();
   const username = user?.username || '';
 
+  const isEnglish = pathname?.startsWith('/en') ?? false;
+
   useEffect(() => {
     setIsMounted(true);
-    if (typeof navigator !== 'undefined') {
-      const isEnglishBrowser = navigator.language.startsWith('en');
-      setIsEnglish(isEnglishBrowser);
-    }
+    
     const hasSeenTour = localStorage.getItem('hasSeenTicos100Tour');
     if (!hasSeenTour) {
-      setIsOpen(true);
+      setShowTour(true);
     }
-  }, []);
+  }, [setShowTour]);
+
+  useEffect(() => {
+    if (showTour) {
+      setCurrentStep(0);
+    }
+  }, [showTour]);
 
   const handleClose = () => {
-    setIsOpen(false);
+    setShowTour(false);
     localStorage.setItem('hasSeenTicos100Tour', 'true');
   };
 
@@ -140,7 +163,7 @@ export default function OnboardingModal() {
     }
   };
 
-  if (!isMounted || !isOpen || pathname?.includes('/login') || !user) return null;
+  if (!isMounted || !showTour || pathname?.includes('/login')) return null;
 
   const step = steps[currentStep];
   const isFirstStep = currentStep === 0;
