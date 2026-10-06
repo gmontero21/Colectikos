@@ -401,8 +401,9 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                 </div>
               </Link>
               <button
+                type="button"
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 text-stone-600 bg-stone-100 hover:bg-stone-200 hover:text-emerald-700 font-bold py-3.5 w-full rounded-xl transition-all active:scale-[0.98]"
+                className="flex items-center justify-center gap-2 text-stone-600 bg-stone-100 active:bg-stone-200 active:text-emerald-700 font-bold py-3.5 w-full rounded-xl cursor-pointer"
               >
                 <LogOut size={20} />
                 <span>{dict?.logout || 'Cerrar Sesión'}</span>
