@@ -215,13 +215,14 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
               </Link>
 
               {/* Funcionalidad Preservada: Logout */}
-              <button
+              <a
+                href="#"
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-stone-500 hover:text-emerald-700 transition-colors font-medium text-sm"
               >
                 <LogOut size={16} />
                 <span>{dict?.logout || 'Salir'}</span>
-              </button>
+              </a>
             </div>
 
             {/* Nivel Inferior (Principal) */}
@@ -400,14 +401,14 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                   <p className="text-sm font-semibold text-emerald-600">{globalTitle} - {porcentajeGlobal}% Tico</p>
                 </div>
               </Link>
-              <button
-                type="button"
+              <a
+                href="#"
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 text-stone-600 bg-stone-100 active:bg-stone-200 active:text-emerald-700 font-bold py-3.5 w-full rounded-xl cursor-pointer"
+                className="flex items-center justify-center gap-2 text-stone-600 bg-stone-100 active:bg-stone-200 active:text-emerald-700 font-bold py-3.5 w-full rounded-xl cursor-pointer relative z-50"
               >
                 <LogOut size={20} />
                 <span>{dict?.logout || 'Cerrar Sesión'}</span>
-              </button>
+              </a>
             </div>
 
           </div>
