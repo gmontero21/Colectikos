@@ -113,9 +113,9 @@ export default function SwapPuzzle({ imageUrl, onSolve }: SwapPuzzleProps) {
         
         {isSolved && (
           <div className="absolute inset-0 z-20 bg-emerald-500/80 backdrop-blur-sm flex items-center justify-center transition-opacity duration-500">
-            <div className="bg-white px-8 py-6 rounded-3xl shadow-2xl flex flex-col items-center gap-3 transform transition-transform duration-500 scale-100">
-              <span className="text-5xl">🏆</span>
-              <h3 className="font-extrabold text-2xl text-stone-900">
+            <div className="bg-white px-5 sm:px-6 py-4 rounded-3xl shadow-2xl flex flex-col items-center gap-2 transform transition-transform duration-500 scale-100">
+              <span className="text-4xl">🏆</span>
+              <h3 className="font-extrabold text-xl text-stone-900">
                 {isEnglish ? 'Resolved!' : '¡Resuelto!'}
               </h3>
               <div className="bg-emerald-100 text-emerald-700 font-bold px-4 py-1.5 rounded-full text-sm">

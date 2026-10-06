@@ -88,23 +88,30 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
     });
   };
 
-  const handleLogout = async () => {
-    // Guardar el flag del tour
-    const hasSeenTour = localStorage.getItem('hasSeenTicos100Tour');
-    
-    // Limpiar toda la memoria local (sesión y perfil)
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Restaurar el flag del tour para que no lo vuelva a ver
-    if (hasSeenTour) {
-      localStorage.setItem('hasSeenTicos100Tour', hasSeenTour);
-    }
+  const handleLogout = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    try {
+      // Guardar el flag del tour
+      const hasSeenTour = localStorage.getItem('hasSeenTicos100Tour');
+      
+      // Limpiar toda la memoria local (sesión y perfil)
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Restaurar el flag del tour para que no lo vuelva a ver
+      if (hasSeenTour) {
+        localStorage.setItem('hasSeenTicos100Tour', hasSeenTour);
+      }
 
-    toast.success('Cerrando sesión...');
-    
-    // Cerrar sesión en Clerk y redirigir
-    await signOut({ redirectUrl: '/' });
+      toast.success('Cerrando sesión...');
+      
+      // Cerrar sesión en Clerk y redirigir
+      await signOut();
+      window.location.href = '/';
+    } catch (error) {
+      console.error(error);
+      window.location.href = '/';
+    }
   };
 
   return (
