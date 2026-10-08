@@ -41,6 +41,16 @@ export async function ensureDbUser(localUsername?: string, fallbackClerkId?: str
       const existingUser = await prisma.user.findUnique({ where: { username: fallbackUsername } });
       const finalUsername = existingUser ? `${fallbackUsername}_${Date.now().toString().slice(-4)}` : fallbackUsername;
       
+      // Chequear si existe un guest account con localUsername
+      let guestUser = null;
+      if (localUsername) {
+        guestUser = await prisma.user.findUnique({ where: { username: localUsername } });
+        // Verificamos que sea un guest (passwordHash 'local_auth')
+        if (guestUser && guestUser.passwordHash !== 'local_auth') {
+          guestUser = null;
+        }
+      }
+      
       try {
         dbUser = await prisma.user.create({
           data: {
@@ -49,10 +59,34 @@ export async function ensureDbUser(localUsername?: string, fallbackClerkId?: str
             email: clerkEmail || `${finalUsername}@colectikos.local`,
             passwordHash: 'clerk_auth',
             name: clerkUser?.firstName || finalUsername,
-            xp: 0,
-            level: 1
+            xp: guestUser ? guestUser.xp : 0,
+            level: guestUser ? guestUser.level : 1,
+            currentStreak: guestUser ? guestUser.currentStreak : 0,
+            longestStreak: guestUser ? guestUser.longestStreak : 0,
+            lastLoginDate: guestUser ? guestUser.lastLoginDate : null,
+            estampillasDisponibles: guestUser ? guestUser.estampillasDisponibles : 3,
+            ultimaFechaEstampillas: guestUser ? guestUser.ultimaFechaEstampillas : new Date(),
           }
         });
+        
+        // Si había un guestUser, transferimos todo su progreso al nuevo usuario
+        if (guestUser) {
+          console.log(`Migrating guest user ${guestUser.id} to clerk user ${clerkId}`);
+          await prisma.userProgress.updateMany({
+            where: { userId: guestUser.id },
+            data: { userId: clerkId }
+          });
+          await prisma.userActionLog.updateMany({
+            where: { userId: guestUser.id },
+            data: { userId: clerkId }
+          });
+          await prisma.rating.updateMany({
+            where: { userId: guestUser.id },
+            data: { userId: clerkId }
+          });
+          // Eliminar el usuario guest antiguo
+          await prisma.user.delete({ where: { id: guestUser.id } });
+        }
       } catch (e) {
         console.error("Error creating user from Clerk data", e);
       }
@@ -147,19 +181,10 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 
     // 2. Ejecutar Transacción Segura
     const result = await prisma.$transaction(async (tx: any) => {
-      // Garantizar que el Lugar exista en la base de datos (Lazy Seed) para evitar error P2003
+      // Garantizar que el Lugar exista en la base de datos
       const existingLugar = await tx.lugar.findUnique({ where: { id: lugarId } });
       if (!existingLugar) {
-        await tx.lugar.create({
-          data: {
-            id: lugarId,
-            nombre: `Lugar Local ${lugarId}`, // El UI usará mockLugares, esto solo satisface FK
-            categoria: 'PROVINCIA', 
-            descripcion: 'Auto-generado para satisfacer integridad referencial',
-            ubicacion: 'Costa Rica',
-            isVisible: false
-          }
-        });
+        throw new Error('Lugar no encontrado en la base de datos real.');
       }
 
       // Verificar si ya existe en UserProgress
@@ -264,14 +289,47 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 export async function getUserGamification(localUsername?: string, fallbackClerkId?: string) {
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
-    if (!dbUser) return { xp: 0, level: 1, estampillas: 0 };
+    if (!dbUser) return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true };
 
     const activeUser = await checkAndResetStamps(dbUser.id);
     if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0 };
 
-    return { xp: activeUser.xp, level: activeUser.level, estampillas: activeUser.estampillasDisponibles };
+    return { 
+      xp: activeUser.xp, 
+      level: activeUser.level, 
+      estampillas: activeUser.estampillasDisponibles,
+      onboardingCompleted: activeUser.onboardingCompleted
+    };
   } catch (error) {
-    return { xp: 0, level: 1, estampillas: 0 };
+    return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true };
+  }
+}
+
+export async function completeOnboarding(username: string, genero: string) {
+  try {
+    const dbUser = await ensureDbUser();
+    if (!dbUser) throw new Error("No autenticado");
+
+    // Verificar si el username ya está tomado por otro usuario
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing && existing.id !== dbUser.id) {
+      return { success: false, message: "Este nombre ya está en uso. ¡Prueba con otro!" };
+    }
+
+    await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        username,
+        name: username,
+        genero,
+        onboardingCompleted: true
+      }
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error en completeOnboarding:", error);
+    return { success: false, message: "Error al actualizar tu perfil." };
   }
 }
 

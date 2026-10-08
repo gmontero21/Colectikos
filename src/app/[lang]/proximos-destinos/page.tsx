@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import PlaceCard from '../../../components/PlaceCard';
-import { mockLugares } from '../../../data/mockData';
+import { useLugaresData } from '../../../context/LugaresContext';
 import { useProgress } from '../../../context/ProgressContext';
 import { useDictionary } from '../../../context/DictionaryContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../../../utils/getLugares';
@@ -19,8 +19,9 @@ export default function ProximosDestinosPage() {
 
   const { completedPlaces, handleCheckIn, bucketList } = useProgress();
   const dict = useDictionary();
+  const dbLugares = useLugaresData();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
 
   const activeDestination = activeDestinationId 
     ? localizedLugares.find(l => l.id === activeDestinationId) 
@@ -66,7 +67,7 @@ export default function ProximosDestinosPage() {
   localizedLugares.forEach(lugar => {
     if (lugar.categoria === 'PROVINCIA') return;
 
-    const provincesForLugar = getProvincesForLugar(lugar.id);
+    const provincesForLugar = getProvincesForLugar(lugar.id, dbLugares);
     
     provincesForLugar.forEach(province => {
       if (progressData[province]) {
@@ -114,7 +115,7 @@ export default function ProximosDestinosPage() {
               {localizedLugares
                 .filter(l => bucketList.includes(l.id))
                 .map((lugar, index) => {
-                  const provinceName = getProvincesForLugar(lugar.id).join(' / ');
+                  const provinceName = getProvincesForLugar(lugar.id, dbLugares).join(' / ');
                   const progress = progressData[provinceName]?.percentage || 0;
                   const isActive = activeDestinationId === lugar.id;
                   

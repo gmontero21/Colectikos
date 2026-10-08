@@ -1,274 +1,191 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Check, AlertCircle } from 'lucide-react';
+import { completeOnboarding } from '../actions/gamification';
+import { toast } from 'sonner';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-import { useUser } from '@clerk/nextjs';
-import { useProgress } from '../context/ProgressContext';
-import { 
-  X, 
-  Map, 
-  User, 
-  BookOpen, 
-  Unlock, 
-  Gamepad2, 
-  LayoutGrid, 
-  CheckCircle, 
-  ChevronLeft, 
-  ChevronRight, 
-  Lightbulb,
-  Settings,
-  Trophy,
-  Sparkles,
-  Flame,
-  Star
-} from 'lucide-react';
 
-const getSteps = (isEnglish: boolean, username: string) => [
-  {
-    id: 1,
-    title: isEnglish ? `Welcome to Colectikos${username ? `, ${username}` : ''}!` : `¡Bienvenido a Colectikos${username ? `, ${username}` : ''}!`,
-    desc: isEnglish ? 'Your interactive album to explore Costa Rica. Here is a quick tour to help you get the most out of your collection.' : 'Tu álbum interactivo para explorar Costa Rica. Aquí tienes un tour rápido para que le saques el máximo provecho a tu colección.',
-    tip: isEnglish ? 'Takes less than 1 minute' : 'Toma menos de 1 minuto',
-    icon: <Map className="w-8 h-8 text-blue-600" />,
-    iconBg: 'bg-blue-100'
-  },
-  {
-    id: 2,
-    title: isEnglish ? 'Your Collector Profile' : 'Tu Perfil de Coleccionista',
-    desc: isEnglish ? 'Create your Collector profile to save your progress. After entering the Album, finish personalizing it with your avatar and travel preferences.' : 'Crea tu perfil de Coleccionista para guardar tu progreso. Luego de ingresar al Álbum, termina de personalizarlo con tu ávatar y preferencias de viaje',
-    tip: isEnglish ? 'Click on Settings to edit your profile' : 'Haz clic en Configuración para editar tu perfil',
-    tipIcon: <Settings className="w-4 h-4 text-pink-500" />,
-    tipClassName: 'bg-pink-50 text-pink-700 border-pink-100',
-    icon: <User className="w-8 h-8 text-purple-600" />,
-    iconBg: 'bg-purple-100'
-  },
-  {
-    id: 3,
-    title: isEnglish ? 'Navigate the Album' : 'Navegar el Álbum',
-    desc: isEnglish ? 'Explore the 100 free stickers with 93 popular tourist destinations and the 7 provinces. Use the filters to search by province or category.' : 'Explorá las 100 postales gratuitas con 93 destinos turísticos populares y las 7 provincias. Usá los filtros para buscar por provincia o categoría',
-    tip: isEnglish ? 'You can also use the search bar' : 'También podés usar la barra de búsqueda',
-    icon: <BookOpen className="w-8 h-8 text-emerald-600" />,
-    iconBg: 'bg-emerald-100'
-  },
-  {
-    id: 4,
-    title: isEnglish ? 'Unlock Stickers' : 'Desbloquear Postales',
-    desc: isEnglish ? 'Every day, Otico will give you 3 tickets to unlock postcards. By solving the puzzle you will earn extra XP, and if you leave a review on your destinations, you will earn 1 additional ticket per day!' : 'Cada día, Otico te dará 3 tiquetes para desbloquear postales. Al armar el rompecabezas ganarás XP extra, y si dejas una reseña en tus destinos, ¡ganarás 1 tiquete adicional al día!',
-    tip: isEnglish ? 'Every sticker brings you closer to 100%!' : '¡Cada postal te acerca al 100%!',
-    icon: <Unlock className="w-8 h-8 text-amber-600" />,
-    iconBg: 'bg-amber-100'
-  },
-  {
-    id: 5,
-    title: isEnglish ? '3 Game Modes' : '3 Modos de Juego',
-    desc: isEnglish ? 'Choose how to collect: Curious Mode (if you just want to see the sticker), Nomad Mode (if you passed by) or Conqueror Mode (if you fully experienced the place).' : 'Elegí cómo coleccionar: Modo Curioso (si solo querés ver la postal), Modo Nómada (si lo viste de pasadita) o Modo Conquistador (si viviste el lugar a pleno)',
-    tip: isEnglish ? 'Choose how you experienced the destination when unlocking each sticker' : 'Elige cómo viviste el destino al desbloquear cada postal',
-    icon: <Gamepad2 className="w-8 h-8 text-rose-600" />,
-    iconBg: 'bg-rose-100'
-  },
-  {
-    id: 6,
-    title: isEnglish ? 'Menus and Tools' : 'Menús y Herramientas',
-    desc: isEnglish ? 'Use the main menu to access My Next Destinations, view the local recommendations directory, and check your ranking.' : 'Usá el menú principal para acceder a Mis Próximos Destinos, ver el directorio de recomendaciones locales y consultar tu ranking.',
-    tip: isEnglish ? 'Everything at a tap away' : 'Todo a un toque de distancia',
-    icon: <LayoutGrid className="w-8 h-8 text-indigo-600" />,
-    iconBg: 'bg-indigo-100'
-  },
-  {
-    id: 7,
-    title: isEnglish ? 'Your Progress and Passport' : 'Tu Progreso y Pasaporte',
-    desc: isEnglish ? 'Click on your explorer name, see your general and category progress, observe your province progress on the map.' : 'Dale clic a tu nombre de explorador, mirá tu progreso general y por categoría, observá tu progreso por provincia en el mapa',
-    tip: isEnglish ? 'Export your Colectikos passport and show off your progress' : 'Exportá tu pasaporte Colectikos y presumí tu progreso',
-    icon: <Trophy className="w-8 h-8 text-orange-600" />,
-    iconBg: 'bg-orange-100'
-  },
-  {
-    id: 8,
-    title: isEnglish ? 'Keep the flame alive!' : '¡Mantén la llama encendida!',
-    desc: isEnglish ? 'The number next to the flame indicates your consecutive days logging into the app. If you log in every day without failing, the streak will grow. Reach streaks of 5, 10, 15 or 20 days in a row to earn extra XP bonuses!' : 'El número junto a la llamita indica tus días consecutivos entrando a la app. Si entras todos los días sin fallar, la racha crecerá. ¡Alcanza rachas de 5, 10, 15 o 20 días seguidos para ganar bonos extra de XPs!',
-    tip: isEnglish ? 'Daily consistency is rewarded' : 'La constancia diaria tiene su recompensa',
-    icon: <Flame className="w-8 h-8 text-red-600" />,
-    iconBg: 'bg-red-100'
-  },
-  {
-    id: 9,
-    title: isEnglish ? 'Level up' : 'Sube de nivel',
-    desc: isEnglish ? 'Earn Experience Points (XP) by unlocking new postcards and maintaining your streaks. The more XP you accumulate, the faster your collector level, indicated in the yellow circle on your avatar, will rise.' : 'Gana Puntos de Experiencia (XP) al desbloquear nuevas postales y mantener tus rachas. Entre más XP acumules, más rápido subirá tu nivel de coleccionista indicado en el círculo amarillo de tu avatar.',
-    tip: isEnglish ? 'More XP = Higher collector level' : 'Más XP = Mayor nivel de coleccionista',
-    icon: <Star className="w-8 h-8 text-yellow-600" />,
-    iconBg: 'bg-yellow-100'
-  },
-  {
-    id: 10,
-    title: isEnglish ? 'Urban Legend' : 'Leyenda Urbana',
-    desc: isEnglish ? 'Legend has it that the Colectikos Album will keep growing. New destinations, new stickers to collect, new categories, and lots of healthy competition for the top spots in the rankings. Best of all, the Community will choose which destinations deserve a sticker in the album.' : 'Dice la leyenda que el Álbum de Colectikos seguirá creciendo. Nuevos destinos, nuevas postales para coleccionar, nuevas categorías y mucha competencia sana por los puestos de honor en los rankings. Lo mejor de todo es que la Comunidad es la que escogerá cuáles destinos merecen una postal en el álbum.',
-    tip: isEnglish ? 'On your marks... get set... go explore!' : 'En sus marcas... listos... ¡a pasear!',
-    icon: <Sparkles className="w-8 h-8 text-yellow-600" />,
-    iconBg: 'bg-yellow-100'
-  },
-  {
-    id: 11,
-    title: isEnglish ? 'Ready to explore!' : '¡Listo para explorar!',
-    desc: isEnglish ? 'You are now ready to start filling your album and supporting national tourism. Let the adventure begin!' : 'Ya estás preparado para empezar a llenar tu álbum y apoyar el turismo nacional. ¡Que empiece la aventura!',
-    tip: isEnglish ? 'Pura vida!' : '¡Pura vida!',
-    icon: <CheckCircle className="w-8 h-8 text-green-600" />,
-    iconBg: 'bg-green-100'
-  }
-];
+interface OnboardingModalProps {
+  onCompleted: () => void;
+}
 
-export default function OnboardingModal() {
-  const { showTour, setShowTour } = useProgress();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
+export default function OnboardingModal({ onCompleted }: OnboardingModalProps) {
   const pathname = usePathname();
-  const { user } = useUser();
-  const username = user?.username || '';
+  const lang = pathname.split('/')[1] === 'en' ? 'en' : 'es';
 
-  const isEnglish = pathname?.startsWith('/en') ?? false;
+  const [username, setUsername] = useState('');
+  const [gender, setGender] = useState<'MASCULINO' | 'FEMENINO' | 'NEUTRO'>('MASCULINO');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    setIsMounted(true);
+  const t = {
+    title: lang === 'en' ? "Create your collector profile" : "Crea tu perfil de coleccionista",
+    subtitle: lang === 'en' 
+      ? "You're about to start your collection. How do you want other explorers to know you?" 
+      : "Estás a punto de iniciar tu colección. ¿Cómo quieres que te conozcan los demás exploradores?",
+    usernameLabel: lang === 'en' ? "Collector Name" : "Nombre de Coleccionista",
+    usernamePlaceholder: lang === 'en' ? "E.g. JuanExplores" : "Ej. JuanExplora",
+    usernameHint: lang === 'en' 
+      ? "This name will be public and appear in community rankings." 
+      : "Este nombre será público y aparecerá en los rankings de comunidad.",
+    genderLabel: lang === 'en' ? "How do you prefer to be called?" : "¿Cómo preferís que te llamen?",
+    genderHint: lang === 'en' 
+      ? "This will adjust your level titles (e.g. \"Tico Beginner\" vs \"Tica Beginner\")." 
+      : "Esto ajustará los títulos de tus niveles (ej. \"Tico Principiante\" vs \"Tica Principiante\").",
+    male: lang === 'en' ? "Male" : "Masculino",
+    female: lang === 'en' ? "Female" : "Femenino",
+    neutral: lang === 'en' ? "Neutral" : "Neutro",
+    start: lang === 'en' ? "Start Adventure" : "Comenzar Aventura",
+    errEmpty: lang === 'en' ? "Please enter a collector name." : "Por favor ingresa un nombre de coleccionista.",
+    errShort: lang === 'en' ? "Name must be at least 3 characters." : "El nombre debe tener al menos 3 caracteres.",
+    welcome: lang === 'en' ? "Welcome" : "¡Bienvenido/a",
+    errSave: lang === 'en' ? "Error saving profile." : "Error al guardar el perfil.",
+    errUnexp: lang === 'en' ? "An unexpected error occurred." : "Ocurrió un error inesperado."
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) {
+      setError(t.errEmpty);
+      return;
+    }
+    if (username.length < 3) {
+      setError(t.errShort);
+      return;
+    }
     
-    const hasSeenTour = localStorage.getItem('hasSeenTicos100Tour');
-    if (!hasSeenTour) {
-      setShowTour(true);
-    }
-  }, [setShowTour]);
+    setIsLoading(true);
+    setError('');
 
-  useEffect(() => {
-    if (showTour) {
-      setCurrentStep(0);
-    }
-  }, [showTour]);
-
-  const handleClose = () => {
-    setShowTour(false);
-    localStorage.setItem('hasSeenTicos100Tour', 'true');
-  };
-
-  const steps = getSteps(isEnglish, username);
-
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      handleClose();
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+    try {
+      const result = await completeOnboarding(username.trim(), gender);
+      if (result.success) {
+        toast.success(`${t.welcome}, ${username}!`);
+        const profile = localStorage.getItem('userProfileData');
+        if (profile) {
+          const parsed = JSON.parse(profile);
+          parsed.username = username.trim();
+          parsed.gender = gender;
+          localStorage.setItem('userProfileData', JSON.stringify(parsed));
+          window.dispatchEvent(new Event('profileUpdated'));
+        } else {
+          localStorage.setItem('userProfileData', JSON.stringify({ username: username.trim(), gender }));
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
+        onCompleted();
+      } else {
+        setError(result.message || t.errSave);
+      }
+    } catch (e) {
+      setError(t.errUnexp);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  if (!isMounted || !showTour || pathname?.includes('/login')) return null;
-
-  const step = steps[currentStep];
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === steps.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-      <div className="relative w-full max-w-md bg-emerald-50 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
+        />
         
-        {/* Imagen sutil de Otico */}
-        <div className="absolute top-20 right-6 w-24 h-24 pointer-events-none opacity-80 z-0">
-          <Image 
-            src={isEnglish ? '/images/Imagenes_Pagina/otico_birrete_en.png' : '/images/Imagenes_Pagina/otico_birrete_es.png'}
-            alt="Otico"
-            fill
-            className="object-contain"
-          />
-        </div>
-
-        {/* Encabezado */}
-        <div className="flex items-center justify-between p-6 pb-2 relative z-10">
-          <span className="text-sm font-bold tracking-wider text-gray-400 uppercase">
-            {isEnglish ? `Step ${currentStep + 1} of ${steps.length}` : `Paso ${currentStep + 1} de ${steps.length}`}
-          </span>
-          <button
-            onClick={handleClose}
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
-            aria-label={isEnglish ? 'Close tour' : 'Cerrar tour'}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Contenido principal */}
-        <div className="flex-1 px-6 py-4 flex flex-col items-center text-center">
-          <div className={`w-20 h-20 flex items-center justify-center rounded-3xl mb-6 shadow-sm ${step.iconBg}`}>
-            {step.icon}
-          </div>
-          
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {step.title}
-          </h2>
-          
-          <p className="text-gray-600 leading-relaxed mb-8">
-            {step.desc}
-          </p>
-          
-          <div className={`mt-auto mb-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${step.tipClassName || 'bg-slate-50 text-slate-700 border-slate-100'}`}>
-            {/* @ts-ignore - tipIcon exists optionally on step */}
-            {step.tipIcon || <Lightbulb className="w-4 h-4 text-amber-500" />}
-            {step.tip}
-          </div>
-        </div>
-
-        {/* Pie y navegación */}
-        <div className="p-6 pt-2 bg-emerald-50">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex justify-center flex-1 gap-1.5">
-              {steps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    index === currentStep 
-                      ? 'w-6 bg-emerald-600' 
-                      : 'w-2 bg-gray-200'
-                  }`}
-                />
-              ))}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative bg-white w-full max-w-lg rounded-[2rem] shadow-2xl overflow-hidden"
+        >
+          <div className="bg-emerald-600 px-6 py-8 text-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(/images/Imagenes_Pagina/patron-topografico.png)', backgroundSize: 'cover' }}></div>
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4">
+                <User className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold font-serif italic mb-2">{t.title}</h2>
+              <p className="text-emerald-50 text-sm sm:text-base">
+                {t.subtitle}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {!isFirstStep && (
-              <button
-                onClick={handlePrev}
-                className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-2xl transition-colors flex items-center justify-center border border-gray-200"
-                aria-label={isEnglish ? 'Previous' : 'Anterior'}
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-            
-            <button
-              onClick={handleNext}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl font-semibold text-white transition-all transform hover:scale-[1.02] active:scale-95 bg-emerald-600 hover:bg-emerald-500 shadow-md hover:shadow-lg"
-            >
-              {isFirstStep 
-                ? (isEnglish ? 'Start Tour' : 'Comenzar Tour')
-                : isLastStep 
-                  ? (isEnglish ? "Let's Go!" : '¡Empezar!')
-                  : (isEnglish ? 'Next' : 'Siguiente')}
-              {!isLastStep && <ChevronRight className="w-5 h-5" />}
-            </button>
+          <div className="p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-2">{t.usernameLabel}</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); setError(''); }}
+                    placeholder={t.usernamePlaceholder}
+                    className="w-full pl-4 pr-10 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-stone-800"
+                    maxLength={20}
+                  />
+                  {username.length >= 3 && !error && (
+                    <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
+                  )}
+                </div>
+                {error && (
+                  <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-2 text-sm text-red-500 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-4 h-4" /> {error}
+                  </motion.p>
+                )}
+                <p className="mt-2 text-xs text-stone-500">{t.usernameHint}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-3">{t.genderLabel}</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setGender('MASCULINO')}
+                    className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl border-2 transition-all ${gender === 'MASCULINO' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-100 bg-stone-50 text-stone-500 hover:border-emerald-200 hover:bg-emerald-50/50'}`}
+                  >
+                    <span className="font-bold text-sm">Tico</span>
+                    <span className="text-[10px] opacity-70 mt-1">{t.male}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGender('FEMENINO')}
+                    className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl border-2 transition-all ${gender === 'FEMENINO' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-100 bg-stone-50 text-stone-500 hover:border-emerald-200 hover:bg-emerald-50/50'}`}
+                  >
+                    <span className="font-bold text-sm">Tica</span>
+                    <span className="text-[10px] opacity-70 mt-1">{t.female}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGender('NEUTRO')}
+                    className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl border-2 transition-all ${gender === 'NEUTRO' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-stone-100 bg-stone-50 text-stone-500 hover:border-emerald-200 hover:bg-emerald-50/50'}`}
+                  >
+                    <span className="font-bold text-sm">Tic@</span>
+                    <span className="text-[10px] opacity-70 mt-1">{t.neutral}</span>
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-stone-500">{t.genderHint}</p>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isLoading || username.length < 3}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex justify-center items-center gap-2"
+                >
+                  {isLoading ? (
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  ) : (
+                    t.start
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-          
-          {isFirstStep && (
-            <button 
-              onClick={handleClose}
-              className="w-full mt-3 py-2 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              {isEnglish ? 'Skip tour' : 'Saltar tour'}
-            </button>
-          )}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 }

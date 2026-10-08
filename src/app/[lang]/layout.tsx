@@ -34,7 +34,8 @@ import Navbar from "../../components/Navbar";
 import InstallBanner from "../../components/InstallBanner";
 import { getDictionary } from "../../dictionaries/getDictionary";
 import WelcomeModal from "../../components/WelcomeModal";
-import OnboardingModal from "../../components/OnboardingModal";
+import { getDbLugares } from "../../actions/lugares";
+import { LugaresProvider } from "../../context/LugaresContext";
 
 export default async function RootLayout({
   children,
@@ -48,6 +49,8 @@ export default async function RootLayout({
   const dict = await getDictionary(lang);
   // @ts-ignore - Agregamos lang dinámicamente al diccionario
   dict.lang = lang;
+
+  const lugares = await getDbLugares();
 
   const activeLocalization = lang === 'es' ? {
     ...esES,
@@ -99,12 +102,12 @@ export default async function RootLayout({
           
           {/* Envoltorio principal para asegurar que el contenido quede por encima de la textura */}
           <div className="relative z-10 flex flex-col min-h-screen">
-            <DictionaryProvider dict={dict}>
-              <ProgressProvider>
-              <Navbar dict={dict.navbar} dictLevels={dict.levels} />
+            <LugaresProvider lugares={lugares}>
+              <DictionaryProvider dict={dict}>
+                <ProgressProvider>
+                <Navbar dict={dict.navbar} dictLevels={dict.levels} />
               <InstallBanner />
               <WelcomeModal />
-              <OnboardingModal />
               {children}
               <Toaster 
                 position="bottom-right"
@@ -118,9 +121,9 @@ export default async function RootLayout({
                 }
               }}
             />
-            <SonnerToaster position="bottom-center" richColors />
               </ProgressProvider>
             </DictionaryProvider>
+            </LugaresProvider>
           </div>
         </body>
       </html>

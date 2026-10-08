@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useClerk, useUser } from '@clerk/nextjs';
 import { Leaf, UserCircle, LogOut, Search, Menu, X, ChevronDown, Globe, Settings, Compass, HelpCircle } from 'lucide-react';
-import { mockLugares } from '../data/mockData';
+import { useLugaresData } from '../context/LugaresContext';
 import { calcularNivel } from '../utils/gamification';
 import { useProgress } from '../context/ProgressContext';
 import SearchBar from './SearchBar';
@@ -56,7 +56,8 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
   const router = useRouter();
   const { signOut } = useClerk();
   
-  const baseLugares = mockLugares.filter(l => l.categoria !== 'PROVINCIA');
+  const dbLugares = useLugaresData();
+  const baseLugares = dbLugares.filter(l => l.categoria !== 'PROVINCIA');
   const totalGlobal = baseLugares.length;
   const completadosGlobal = baseLugares.filter(l => completedPlaces.includes(l.id)).length;
   const porcentajeGlobal = Math.round((completadosGlobal / totalGlobal) * 100) || 0;
@@ -144,7 +145,7 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
             <div className="flex items-center gap-6 mb-2 mt-3 border-b border-stone-100 pb-2 w-full justify-end">
               <EnergyTracker />
               {/* Buscador Integrado */}
-              <SearchBar lugares={mockLugares} />
+              <SearchBar lugares={dbLugares} />
 
               {/* Idioma - Dropdown */}
               <div className="flex items-center gap-1.5 text-stone-500 hover:text-emerald-700 cursor-pointer transition-colors text-sm font-medium group relative py-2">

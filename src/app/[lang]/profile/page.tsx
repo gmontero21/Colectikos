@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { UserCircle, Award, Trophy, Medal, Star, Edit3, BookOpen, Loader2, HelpCircle } from 'lucide-react';
-import { mockLugares, Categoria } from '../../../data/mockData';
+import { Categoria } from '../../../data/mockData';
+import { useLugaresData } from '../../../context/LugaresContext';
 import { toPng } from 'html-to-image';
 import toast from 'react-hot-toast';
 import { calcularNivel } from '../../../utils/gamification';
@@ -36,8 +37,9 @@ import { getProvincesForLugar } from '../../../utils/getLugares';
 export default function Profile() {
   const { completedPlaces, unlockModes, currentStreak, xp, level, userProfile } = useProgress(); 
   const dict = useDictionary(); 
+  const dbLugares = useLugaresData();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
   
   const progressRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -130,7 +132,7 @@ export default function Profile() {
     // solo contamos los lugares que pertenecen a ella.
     if (lugar.categoria === 'PROVINCIA') return;
 
-    const provincesForLugar = getProvincesForLugar(lugar.id);
+    const provincesForLugar = getProvincesForLugar(lugar.id, dbLugares);
     
     provincesForLugar.forEach(province => {
       if (progressData[province]) {

@@ -1,17 +1,16 @@
 "use server";
 
 import prisma from '../lib/prisma';
-import { mockLugares } from '../data/mockData';
-
 import { getProvincesForLugar } from '../utils/getLugares';
 
 export async function getCommunityRating(placeId: string, isProvincia: boolean) {
   try {
     if (isProvincia) {
       // 1. Encontrar todos los IDs de lugares que pertenecen a esta provincia
-      const provinceName = getProvincesForLugar(placeId)[0];
-      const placesInProvince = mockLugares.filter(
-        lugar => lugar.categoria !== 'PROVINCIA' && getProvincesForLugar(lugar.id).includes(provinceName)
+      const dbLugares = await prisma.lugar.findMany({ where: { isVisible: true } });
+      const provinceName = getProvincesForLugar(placeId, dbLugares)[0];
+      const placesInProvince = dbLugares.filter(
+        lugar => lugar.categoria !== 'PROVINCIA' && getProvincesForLugar(lugar.id, dbLugares).includes(provinceName)
       ).map(l => l.id);
 
       if (placesInProvince.length === 0) return null;
@@ -52,6 +51,8 @@ export async function getAllCommunityRatings(): Promise<Record<string, number>> 
       select: { placeId: true, score: true }
     });
     
+    const dbLugares = await prisma.lugar.findMany({ where: { isVisible: true } });
+    
     if (allRatings.length === 0) return {};
 
     const ratingMap: Record<string, number> = {};
@@ -70,7 +71,7 @@ export async function getAllCommunityRatings(): Promise<Record<string, number>> 
       sumMap[r.placeId].count += 1;
 
       // Agrupar por provincia
-      const provNames = getProvincesForLugar(r.placeId);
+      const provNames = getProvincesForLugar(r.placeId, dbLugares);
       provNames.forEach(provName => {
         if (provName !== 'DESCONOCIDO' && provIds[provName]) {
           const provId = provIds[provName];

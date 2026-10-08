@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import CategoryFilter from './CategoryFilter';
 import CommunityPlaceCard from './CommunityPlaceCard';
-import { mockLugares } from '../data/mockData';
+import { useLugaresData } from '../context/LugaresContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../utils/getLugares';
 import { useDictionary } from '../context/DictionaryContext';
 //import { CommunityPost } from '@prisma/client';
@@ -18,12 +18,13 @@ export default function CommunityClient({ posts }: CommunityClientProps) {
   
   const dict = useDictionary();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const dbLugares = useLugaresData();
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
 
   // Filter places
   const filteredLugares = localizedLugares.filter(l => {
     const matchCategory = activeCategory === 'ALL' || l.categoria === activeCategory;
-    const matchProvince = !activeProvince || getProvincesForLugar(l.id).includes(activeProvince);
+    const matchProvince = !activeProvince || getProvincesForLugar(l.id, dbLugares).includes(activeProvince);
     return matchCategory && matchProvince;
   });
 
@@ -96,7 +97,7 @@ export default function CommunityClient({ posts }: CommunityClientProps) {
             .replace(/ Volcano$/i, '');
 
           const randomRotation = rotations[index % rotations.length];
-          const globalIndex = mockLugares.findIndex(m => m.id === lugar.id); // for consistent panini numbers
+          const globalIndex = dbLugares.findIndex(m => m.id === lugar.id); // for consistent panini numbers
 
           return (
             <div 

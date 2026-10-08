@@ -5,7 +5,7 @@ import Hero from '../../components/Hero';
 import CategoryFilter from '../../components/CategoryFilter';
 import PlaceCard from '../../components/PlaceCard';
 
-import { mockLugares } from '../../data/mockData';
+import { useLugaresData } from '../../context/LugaresContext';
 import { useProgress } from '../../context/ProgressContext';
 import { useDictionary } from '../../context/DictionaryContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../../utils/getLugares';
@@ -19,14 +19,15 @@ export default function Home() {
 
   const { completedPlaces, handleCheckIn, bucketList } = useProgress();
   const dict = useDictionary();
+  const dbLugares = useLugaresData();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
 
   // Filter places
   const filteredLugares = localizedLugares.filter(l => {
     if (l.categoria === 'PROVINCIA') return false;
     const matchCategory = activeCategory === 'ALL' || l.categoria === activeCategory;
-    const matchProvince = !activeProvince || getProvincesForLugar(l.id).includes(activeProvince);
+    const matchProvince = !activeProvince || getProvincesForLugar(l.id, dbLugares).includes(activeProvince);
     return matchCategory && matchProvince;
   });
 
@@ -41,7 +42,7 @@ export default function Home() {
     // solo contamos los lugares que pertenecen a ella.
     if (lugar.categoria === 'PROVINCIA') return;
 
-    const provincesForLugar = getProvincesForLugar(lugar.id);
+    const provincesForLugar = getProvincesForLugar(lugar.id, dbLugares);
     
     provincesForLugar.forEach(province => {
       if (progressData[province]) {
@@ -157,7 +158,7 @@ export default function Home() {
           >
             {filteredLugares.map((lugar, index) => {
               const isProv = lugar.categoria === 'PROVINCIA';
-              const provinceName = isProv ? lugar.id : getProvincesForLugar(lugar.id).join(' / ');
+              const provinceName = isProv ? lugar.id : getProvincesForLugar(lugar.id, dbLugares).join(' / ');
               const progress = progressData[provinceName]?.percentage || 0;
               const isDerivedCompleted = progress >= 25;
               const rotations = ['-rotate-2', 'rotate-2', '-rotate-1', 'rotate-1', '-rotate-[1.5deg]', 'rotate-[1.5deg]', '-rotate-3', 'rotate-3'];

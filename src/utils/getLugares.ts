@@ -32,13 +32,12 @@ export function mapLugaresByLocale<T extends I18nLugar>(lugares: T[], locale: 'e
   });
 }
 
-import { mockLugares } from '../data/mockData';
-
-export const getProvincesForLugar = (lugarId: string): string[] => {
-  const original = mockLugares.find(m => m.id === lugarId);
+export const getProvincesForLugar = (lugarId: string, lugares: any[]): string[] => {
+  const original = lugares.find(m => m.id === lugarId);
   if (!original) return ['DESCONOCIDO'];
   
   // Las primeras 7 tarjetas son las provincias mismas
+  // (Asumiendo que las provincias todavía usan IDs específicos o sus nombres son provincias)
   const provinceIds: Record<string, string> = {
     '1': 'SAN JOSE',
     '2': 'ALAJUELA',
@@ -46,7 +45,14 @@ export const getProvincesForLugar = (lugarId: string): string[] => {
     '4': 'HEREDIA',
     '5': 'PUNTARENAS',
     '6': 'LIMON',
-    '7': 'GUANACASTE'
+    '7': 'GUANACASTE',
+    '02fc1b3b-b760-4147-8b83-e399ebb37d6d': 'ALAJUELA',
+    '07df42c0-6718-4f55-8117-0bfbaac31f52': 'CARTAGO',
+    '11da2126-5b32-4e46-bb18-2e06f236e7a2': 'PUNTARENAS',
+    '831a297e-cc7e-490d-b4b3-c1573887b471': 'HEREDIA',
+    '95781a7b-e7b3-406a-a28a-c603a15dc45d': 'SAN JOSE',
+    'ca1a7872-9cc9-4504-8da0-afb8da3724c0': 'LIMON',
+    'd8cdaef3-99d8-4f24-bc71-12ec3d1a8e27': 'GUANACASTE'
   };
   if (provinceIds[lugarId]) return [provinceIds[lugarId]];
 

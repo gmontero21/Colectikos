@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import CategoryFilter from '../../../components/CategoryFilter';
 import PlaceCard from '../../../components/PlaceCard';
 
-import { mockLugares } from '../../../data/mockData';
+import { useLugaresData } from '../../../context/LugaresContext';
 import { useProgress } from '../../../context/ProgressContext';
 import { useDictionary } from '../../../context/DictionaryContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../../../utils/getLugares';
@@ -15,8 +15,9 @@ export default function DestinosVisitadosPage() {
 
   const { completedPlaces, handleCheckIn } = useProgress();
   const dict = useDictionary();
+  const dbLugares = useLugaresData();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
 
   // Filter places based on completed places, category, and province
   const filteredLugares = localizedLugares.filter(l => {
@@ -24,7 +25,7 @@ export default function DestinosVisitadosPage() {
     if (!completedPlaces.includes(l.id)) return false; // Only unlocked places
 
     const matchCategory = activeCategory === 'ALL' || l.categoria === activeCategory;
-    const matchProvince = !activeProvince || getProvincesForLugar(l.id).includes(activeProvince);
+    const matchProvince = !activeProvince || getProvincesForLugar(l.id, dbLugares).includes(activeProvince);
     
     return matchCategory && matchProvince;
   });
@@ -38,7 +39,7 @@ export default function DestinosVisitadosPage() {
   localizedLugares.forEach(lugar => {
     if (lugar.categoria === 'PROVINCIA') return;
 
-    const provincesForLugar = getProvincesForLugar(lugar.id);
+    const provincesForLugar = getProvincesForLugar(lugar.id, dbLugares);
     
     provincesForLugar.forEach(province => {
       if (progressData[province]) {
@@ -129,8 +130,8 @@ export default function DestinosVisitadosPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
               {filteredLugares.map((lugar, index) => {
                 // Since this place is guaranteed to be in completedPlaces, we can assert isCompleted=true
-                const provinceName = getProvincesForLugar(lugar.id).join(' / ');
-                const progress = progressData[getProvincesForLugar(lugar.id)[0]]?.percentage || 0; // fallback just for card rendering
+                const provinceName = getProvincesForLugar(lugar.id, dbLugares).join(' / ');
+                const progress = progressData[getProvincesForLugar(lugar.id, dbLugares)[0]]?.percentage || 0; // fallback just for card rendering
                 
                 return (
                   <div 

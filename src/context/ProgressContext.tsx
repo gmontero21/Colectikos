@@ -5,8 +5,9 @@ import toast from 'react-hot-toast';
 import LevelUpModal from '../components/LevelUpModal';
 import StreakCelebrationModal from '../components/StreakCelebrationModal';
 import NudgeToast from '../components/NudgeToast';
+import OnboardingModal from '../components/OnboardingModal';
 import { calcularNivel } from '../utils/gamification';
-import { mockLugares } from '../data/mockData';
+import { useLugaresData } from './LugaresContext';
 import { getAllCommunityRatings } from '../actions/ratings';
 import { checkInAndAwardXP, rateAndAwardXP, getUserGamification, recordDailyLogin } from '../actions/gamification';
 import { toast as sonnerToast } from 'sonner';
@@ -58,8 +59,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [estampillas, setEstampillas] = useState(3);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showTour, setShowTour] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const { user, isLoaded: clerkLoaded } = useUser();
+  const dbLugares = useLugaresData();
   const dict = useDictionary();
   const hasLoadedRef = useRef(false);
 
@@ -85,10 +88,17 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('tico100_place_details');
         localStorage.removeItem('tico100_bucket_list');
         localStorage.removeItem('tico100_unlock_modes');
-        localStorage.removeItem('userProfileData');
         localStorage.removeItem('hasSeenTicos100Tour');
         localStorage.removeItem('userProfileData');
         localStorage.removeItem('lastClerkUserId');
+        
+        // Mostrar notificación al usuario
+        setTimeout(() => {
+          sonnerToast('Tu sesión ha expirado', {
+            description: 'Inicia sesión nuevamente para recuperar tu progreso guardado.',
+            duration: 6000,
+          });
+        }, 500);
         
         // REINICIAR el ref para que si vuelve a iniciar sesión sin refrescar la página, vuelva a cargar los datos
         hasLoadedRef.current = false;
@@ -165,6 +175,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
           setXp(gamificationData.xp);
           setLevel(gamificationData.level);
           setEstampillas(gamificationData.estampillas);
+          if (gamificationData.onboardingCompleted === false) {
+            setShowOnboarding(true);
+          }
         }
       } catch (e) {
         console.error("Error fetching gamification data", e);
@@ -388,11 +401,11 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       const ticoLabel = userGender === 'FEMENINO' ? 'Tica' : 'Tico';
 
       // Lógica de Primera Postal (Global y por Categoría)
-      const currentPlace = mockLugares.find(l => l.id === id);
+      const currentPlace = dbLugares.find(l => l.id === id);
       
       if (currentPlace) {
         const cat = currentPlace.categoria;
-        const placesInCat = mockLugares.filter(l => l.categoria === cat);
+        const placesInCat = dbLugares.filter(l => l.categoria === cat);
         const completedInCat = placesInCat.filter(l => completedPlaces.includes(l.id));
 
         if (completedPlaces.length === 0) {
@@ -406,7 +419,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Detectar subida de nivel
-      const baseLugares = mockLugares.filter(l => l.categoria !== 'PROVINCIA');
+      const baseLugares = dbLugares.filter(l => l.categoria !== 'PROVINCIA');
       const totalGlobal = baseLugares.length;
       const oldPercentage = Math.round((baseLugares.filter(l => completedPlaces.includes(l.id)).length / totalGlobal) * 100) || 0;
       const newPercentage = Math.round((baseLugares.filter(l => newState.includes(l.id)).length / totalGlobal) * 100) || 0;
@@ -423,7 +436,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
       // Nudge variant logic
       if (currentPlace && currentPlace.grupo_variante) {
-        const twin = mockLugares.find(l => l.grupo_variante === currentPlace.grupo_variante && l.id !== currentPlace.id);
+        const twin = dbLugares.find(l => l.grupo_variante === currentPlace.grupo_variante && l.id !== currentPlace.id);
         if (twin && !newState.includes(twin.id)) { // only suggest if twin is NOT collected yet
           const twinCategoryLabel = dict?.categories?.[twin.categoria] || twin.categoria;
           let nudgeMsg = dict?.toast?.nudgeVariant || "¡Felicidades! Si hiciste una visita completa, recuerda que también puedes desbloquear la postal de este destino en la categoría {Categoria_Gemela}.";
@@ -530,6 +543,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   return (
     <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, handleRate, userProfile, showTour, setShowTour }}>
       {children}
+      {showOnboarding && <OnboardingModal onCompleted={() => setShowOnboarding(false)} />}
       <LevelUpModal 
         isOpen={showLevelUp} 
         onClose={() => {

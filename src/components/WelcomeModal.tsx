@@ -5,7 +5,7 @@ import { X, Compass } from 'lucide-react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { useProgress } from '../context/ProgressContext';
-import { mockLugares } from '../data/mockData';
+import { useLugaresData } from '../context/LugaresContext';
 import { calcularNivel } from '../utils/gamification';
 import enDict from '../dictionaries/en.json';
 import esDict from '../dictionaries/es.json';
@@ -27,6 +27,8 @@ export default function WelcomeModal() {
   // Esto mantiene la coherencia perfecta con el resto de la página
   const isEnglish = params?.lang === 'en';
   const dict = isEnglish ? enDict : esDict;
+
+  const dbLugares = useLugaresData();
 
   useEffect(() => {
     const isHomePage = pathname === '/' || pathname === '/es' || pathname === '/en';
@@ -94,7 +96,7 @@ export default function WelcomeModal() {
       return 'DESCONOCIDO';
     };
 
-    const baseLugares = mockLugares.filter(l => l.categoria !== 'PROVINCIA');
+    const baseLugares = dbLugares.filter(l => l.categoria !== 'PROVINCIA');
     const totalBase = baseLugares.length;
     
     const completedBaseLugares = baseLugares.filter(l => completedPlaces.includes(l.id));

@@ -2,7 +2,7 @@
 
 import React, { useRef } from 'react';
 import PlaceCard from '../../../components/PlaceCard';
-import { mockLugares } from '../../../data/mockData';
+import { useLugaresData } from '../../../context/LugaresContext';
 import { useProgress } from '../../../context/ProgressContext';
 import { useDictionary } from '../../../context/DictionaryContext';
 import { mapLugaresByLocale, getProvincesForLugar } from '../../../utils/getLugares';
@@ -12,8 +12,9 @@ export default function ProvinciasPage() {
   
   const { completedPlaces, handleCheckIn } = useProgress();
   const dict = useDictionary();
+  const dbLugares = useLugaresData();
   const lang = dict?.lang || 'es';
-  const localizedLugares = mapLugaresByLocale(mockLugares, lang);
+  const localizedLugares = mapLugaresByLocale(dbLugares, lang);
 
   const provincesCards = localizedLugares.filter(l => l.categoria === 'PROVINCIA');
 
@@ -25,7 +26,7 @@ export default function ProvinciasPage() {
   localizedLugares.forEach(lugar => {
     if (lugar.categoria === 'PROVINCIA') return;
 
-    const provincesForLugar = getProvincesForLugar(lugar.id);
+    const provincesForLugar = getProvincesForLugar(lugar.id, dbLugares);
     
     provincesForLugar.forEach(province => {
       if (progressData[province]) {
@@ -62,7 +63,7 @@ export default function ProvinciasPage() {
       <section ref={galleryRef} className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-20 pt-2">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
           {provincesCards.map((lugar, index) => {
-            const provinceName = getProvincesForLugar(lugar.id)[0];
+            const provinceName = getProvincesForLugar(lugar.id, dbLugares)[0];
             const progress = progressData[provinceName]?.percentage || 0;
             const isDerivedCompleted = progress >= 25;
             const rotations = ['-rotate-1', 'rotate-2', '-rotate-2', 'rotate-1', 'rotate-0', '-rotate-[1.5deg]', 'rotate-[1.5deg]'];
