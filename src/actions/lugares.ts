@@ -1,5 +1,6 @@
 "use server";
 import prisma from '../lib/prisma';
+import { mockLugares } from '../data/mockData';
 
 export async function getDbLugares() {
   try {
@@ -15,10 +16,18 @@ export async function getDbLugares() {
         ubicacion: true,
         imagenUrl: true,
         grupo_variante: true,
-      },
-      orderBy: { nombre: 'asc' }
+      }
     });
-    return lugares.map(l => ({
+
+    const orderMap = new Map(mockLugares.map((l, index) => [l.id, index]));
+
+    const sortedLugares = lugares.sort((a, b) => {
+      const orderA = orderMap.has(a.id) ? orderMap.get(a.id)! : 9999;
+      const orderB = orderMap.has(b.id) ? orderMap.get(b.id)! : 9999;
+      return orderA - orderB;
+    });
+
+    return sortedLugares.map(l => ({
       ...l,
       imagenUrl: l.imagenUrl || '',
       grupo_variante: l.grupo_variante || undefined,
