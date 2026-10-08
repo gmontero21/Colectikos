@@ -14,6 +14,7 @@ import { toast as sonnerToast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
 import { updateUserProgressNote, getUserProgress, removeUserProgress } from '../actions/progress';
 import { getUserProfile } from '../actions/user';
+import { isSameCRDay } from '../lib/dateUtils';
 interface ProgressContextType {
   completedPlaces: string[];
   placeDetails: Record<string, { date: string; note: string }>;
@@ -185,18 +186,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
           if (gamificationData.fechaBonoTicket) {
             const lastBonus = new Date(gamificationData.fechaBonoTicket);
             const now = new Date();
-            if (lastBonus.getFullYear() === now.getFullYear() && 
-                lastBonus.getMonth() === now.getMonth() && 
-                lastBonus.getDate() === now.getDate()) {
+            if (isSameCRDay(now, lastBonus)) {
               setHasReceivedBonusToday(true);
             }
           }
           if (gamificationData.fechaDevolucionTicket) {
             const lastRefund = new Date(gamificationData.fechaDevolucionTicket);
             const now = new Date();
-            if (lastRefund.getFullYear() === now.getFullYear() && 
-                lastRefund.getMonth() === now.getMonth() && 
-                lastRefund.getDate() === now.getDate()) {
+            if (isSameCRDay(now, lastRefund)) {
               setHasRefundedTicketToday(true);
             }
           }

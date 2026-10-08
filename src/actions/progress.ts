@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from '../lib/prisma';
+import { isSameCRDay } from '../lib/dateUtils';
 import { ensureDbUser } from './gamification';
 
 export async function updateUserProgressNote(lugarId: string, note: string, localUsername?: string, fallbackClerkId?: string) {
@@ -61,10 +62,7 @@ export async function removeUserProgress(lugarId: string, localUsername?: string
     const now = new Date();
     const lastRefund = user.fechaDevolucionTicket ? new Date(user.fechaDevolucionTicket) : null;
     
-    const canRefund = !lastRefund || 
-      (lastRefund.getFullYear() !== now.getFullYear() || 
-       lastRefund.getMonth() !== now.getMonth() || 
-       lastRefund.getDate() !== now.getDate());
+    const canRefund = !lastRefund || !isSameCRDay(now, lastRefund);
 
     let newTotalXp = user.xp;
     let newLevel = user.level;

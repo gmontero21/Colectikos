@@ -2,6 +2,7 @@
 
 import prisma from '../lib/prisma';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { isSameCRDay, getCRStartOfDayUTC } from '../lib/dateUtils';
 
 export async function ensureDbUser(localUsername?: string, fallbackClerkId?: string) {
   let clerkId = null;
@@ -134,10 +135,7 @@ export async function checkAndResetStamps(userId: string) {
   
   const lastDate = new Date(user.ultimaFechaEstampillas);
   
-  const isSameDay = 
-    now.getFullYear() === lastDate.getFullYear() &&
-    now.getMonth() === lastDate.getMonth() &&
-    now.getDate() === lastDate.getDate();
+  const isSameDay = isSameCRDay(now, user.ultimaFechaEstampillas);
 
   if (!isSameDay) {
     const updatedUser = await prisma.user.update({
@@ -222,9 +220,8 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
         return { success: true, xpAwarded: 0, newTotalXp: dbUser!.xp, newLevel: dbUser!.level, limitReached: false, unlocksToday: 0 };
       }
 
-      // Reglas Anti-Speedrunners: Contar cuantas postales ha desbloqueado HOY
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+      // Reglas Anti-Speedrunners: Contar cuantas postales ha desbloqueado HOY (CR Time)
+      const startOfDay = getCRStartOfDayUTC();
 
       const unlocksToday = await tx.userActionLog.count({
         where: {
@@ -394,8 +391,7 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
       }
 
       // Reglas Anti-Farming (Límites diarios de calificación con XP)
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+      const startOfDay = getCRStartOfDayUTC();
 
       const ratingsToday = await tx.userActionLog.count({
         where: {
@@ -442,10 +438,7 @@ export async function rateAndAwardXP(lugarId: string, score: number, localUserna
       let bonusAwarded = false;
       const now = new Date();
       const lastBonusDate = dbUser.fechaBonoTicket ? new Date(dbUser.fechaBonoTicket) : null;
-      const isBonusSameDay = lastBonusDate &&
-        now.getFullYear() === lastBonusDate.getFullYear() &&
-        now.getMonth() === lastBonusDate.getMonth() &&
-        now.getDate() === lastBonusDate.getDate();
+      const isBonusSameDay = lastBonusDate ? isSameCRDay(now, lastBonusDate) : false;
 
       if (!isBonusSameDay) {
         bonusAwarded = true;

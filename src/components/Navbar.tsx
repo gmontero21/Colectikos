@@ -262,7 +262,27 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                   </div>
                 </div>
               </div>
-              <Link href={`/${currentLang}/community`} className="hover:text-emerald-700 transition-colors">{dict?.community || 'Comunidad'}</Link>
+              <div className="relative group py-2">
+                <Link href={`/${currentLang}/community`} className="flex items-center gap-1 hover:text-emerald-700 transition-colors">
+                  {dict?.community || 'Comunidad'} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-200" />
+                </Link>
+                <div className="absolute top-full left-0 pt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="bg-white rounded-xl shadow-lg border border-stone-100 overflow-hidden flex flex-col">
+                    <Link
+                      href={`/${currentLang}/community/rankings`}
+                      className="px-4 py-2 text-left w-full transition-colors hover:bg-stone-50 hover:text-emerald-700 text-stone-700 font-medium border-b border-stone-50"
+                    >
+                      {dict?.rankings || 'Rankings'}
+                    </Link>
+                    <Link
+                      href={`/${currentLang}/community/proximamente`}
+                      className="px-4 py-2 text-left w-full transition-colors hover:bg-stone-50 hover:text-emerald-700 text-stone-700 font-medium"
+                    >
+                      {dict?.comingSoon || 'Próximamente'}
+                    </Link>
+                  </div>
+                </div>
+              </div>
               <Link href={`/${currentLang}/contact`} className="hover:text-emerald-700 transition-colors">{dict?.contact || 'Contacto'}</Link>
             </div>
 
@@ -333,7 +353,17 @@ export default function Navbar({ dict, dictLevels }: { dict: any; dictLevels?: a
                   </Link>
                 </div>
               </div>
-              <Link href={`/${currentLang}/community`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-800 font-semibold hover:text-emerald-700 block text-lg">{dict?.community || 'Comunidad'}</Link>
+              <div className="space-y-2">
+                <Link href={`/${currentLang}/community`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-800 font-semibold hover:text-emerald-700 block text-lg">{dict?.community || 'Comunidad'}</Link>
+                <div className="pl-4 border-l-2 border-stone-100 flex flex-col gap-3 mt-2">
+                  <Link href={`/${currentLang}/community/rankings`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-600 font-medium hover:text-emerald-700 block text-base">
+                    {dict?.rankings || 'Rankings'}
+                  </Link>
+                  <Link href={`/${currentLang}/community/proximamente`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-600 font-medium hover:text-emerald-700 block text-base">
+                    {dict?.comingSoon || 'Próximamente'}
+                  </Link>
+                </div>
+              </div>
               <Link href={`/${currentLang}/contact`} onClick={() => setIsMobileMenuOpen(false)} className="text-stone-800 font-semibold hover:text-emerald-700 block text-lg">{dict?.contact || 'Contacto'}</Link>
 
             </div>
