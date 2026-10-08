@@ -28,6 +28,7 @@ interface ProgressContextType {
   level: number;
   currentStreak: number;
   estampillas: number;
+  hasReceivedBonusToday: boolean;
   handleRate: (id: string, score: number) => Promise<void>;
   userProfile: any;
   showTour: boolean;
@@ -57,6 +58,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [level, setLevel] = useState(1);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [estampillas, setEstampillas] = useState(3);
+  const [hasReceivedBonusToday, setHasReceivedBonusToday] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showTour, setShowTour] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -177,6 +179,15 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
           setEstampillas(gamificationData.estampillas);
           if (gamificationData.onboardingCompleted === false) {
             setShowOnboarding(true);
+          }
+          if (gamificationData.fechaBonoTicket) {
+            const lastBonus = new Date(gamificationData.fechaBonoTicket);
+            const now = new Date();
+            if (lastBonus.getFullYear() === now.getFullYear() && 
+                lastBonus.getMonth() === now.getMonth() && 
+                lastBonus.getDate() === now.getDate()) {
+              setHasReceivedBonusToday(true);
+            }
           }
         }
       } catch (e) {
@@ -327,6 +338,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       if (res.success && 'xpAwarded' in res) {
         if (res.bonusAwarded) {
           setEstampillas(prev => prev + 1);
+          setHasReceivedBonusToday(true);
           const bonusMsg = dict?.categories?.ALL === 'All' 
             ? "🎟️ Otico gave you a Bonus Ticket for reviewing today!" 
             : "🎟️ ¡Otico te regaló un Tiquete de Bono por tu reseña de hoy!";
@@ -541,7 +553,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, handleRate, userProfile, showTour, setShowTour }}>
+    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, hasReceivedBonusToday, handleRate, userProfile, showTour, setShowTour }}>
       {children}
       {showOnboarding && <OnboardingModal onCompleted={() => setShowOnboarding(false)} />}
       <LevelUpModal 

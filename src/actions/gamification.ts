@@ -289,19 +289,20 @@ export async function checkInAndAwardXP(lugarId: string, mode: string, localUser
 export async function getUserGamification(localUsername?: string, fallbackClerkId?: string) {
   try {
     const dbUser = await ensureDbUser(localUsername, fallbackClerkId);
-    if (!dbUser) return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true };
+    if (!dbUser) return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true, fechaBonoTicket: null };
 
     const activeUser = await checkAndResetStamps(dbUser.id);
-    if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0 };
+    if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0, fechaBonoTicket: dbUser.fechaBonoTicket };
 
     return { 
       xp: activeUser.xp, 
       level: activeUser.level, 
       estampillas: activeUser.estampillasDisponibles,
-      onboardingCompleted: activeUser.onboardingCompleted
+      onboardingCompleted: activeUser.onboardingCompleted,
+      fechaBonoTicket: activeUser.fechaBonoTicket
     };
   } catch (error) {
-    return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true };
+    return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true, fechaBonoTicket: null };
   }
 }
 

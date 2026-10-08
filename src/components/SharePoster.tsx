@@ -117,10 +117,10 @@ export default function SharePoster({
           <div className="flex items-center gap-5 justify-self-start">
             <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-emerald-500 shadow-2xl bg-stone-800 flex-shrink-0 flex items-center justify-center">
               {base64Avatar ? (
-                <CanvasImage 
+                <img 
                   src={base64Avatar}
-                  className="h-full w-full"
-                  size={256}
+                  className="h-full w-full object-cover"
+                  alt="Avatar"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-stone-400">
@@ -136,11 +136,10 @@ export default function SharePoster({
 
           <div className="justify-self-center ml-16 translate-y-8">
             <div className="flex items-center justify-center h-40 w-40">
-              <CanvasImage 
-                src="/images/Imagenes_Pagina/logo_colectikos_oro.PNG"
-                className="h-full w-full"
-                size={512}
-                isContain={true}
+              <img 
+                src={LOGO_BASE64}
+                className="h-full w-full object-contain"
+                alt="Colectikos Logo"
               />
             </div>
           </div>

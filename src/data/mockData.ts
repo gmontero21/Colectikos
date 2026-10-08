@@ -1,4 +1,4 @@
-export type CategoriaLugar = 'PROVINCIA' | 'VOLCAN' | 'PARQUE_NACIONAL' | 'PLAYA' | 'RIOS_Y_CATARATAS' | 'LAGUNAS' | 'MONTAÑA' | 'CASCADA' | 'RESERVA' | 'MUSEO' | 'CIUDAD_Y_CULTURA' | 'BOSQUES_RESERVAS' | 'HITOS_CULTURALES';
+export type CategoriaLugar = 'PROVINCIA' | 'VOLCAN' | 'PARQUE_NACIONAL' | 'PLAYA' | 'RIOS_Y_CATARATAS' | 'LAGUNAS' | 'MONTAÑA' | 'CASCADA' | 'RESERVA' | 'MUSEO' | 'HITOS_CULTURALES';
 export type Categoria = CategoriaLugar;
 
 export interface Lugar {
@@ -11,7 +11,6 @@ export interface Lugar {
   ubicacion: string;
   ubicacion_en?: string | null;
   imagenUrl: string;
-  grupo_variante?: string;
 }
 
 export const mockLugares: Lugar[] = [
@@ -108,7 +107,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Volcán Rincón de la Vieja",
     "nombre_en": "Rincon de la Vieja Volcano",
     "categoria": "VOLCAN",
-    "grupo_variante": "rincon_de_la_vieja",
     "descripcion": "Fumarolas, pailas de barro y aguas termales.",
     "descripcion_en": "Fumaroles, mud pots and hot springs.",
     "ubicacion": "Guanacaste / Alajuela",
@@ -318,7 +316,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Parque Nacional Manuel Antonio",
     "nombre_en": "Manuel Antonio National Park",
     "categoria": "PARQUE_NACIONAL",
-    "grupo_variante": "manuel_antonio",
     "descripcion": "Fusión perfecta de playa, bosque y fauna silvestre.",
     "descripcion_en": "Perfect fusion of beach, forest and wildlife.",
     "ubicacion": "Quepos, Puntarenas",
@@ -374,7 +371,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Parque Nacional Rincón de la Vieja",
     "nombre_en": "Rincon de la Vieja National Park",
     "categoria": "PARQUE_NACIONAL",
-    "grupo_variante": "rincon_de_la_vieja",
     "descripcion": "Aventura entre fumarolas, pailas y densos bosques.",
     "descripcion_en": "Adventure among fumaroles, mud pots and dense forests.",
     "ubicacion": "Guanacaste / Alajuela",
@@ -408,7 +404,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Parque Nacional Tortuguero",
     "nombre_en": "Tortuguero National Park",
     "categoria": "PARQUE_NACIONAL",
-    "grupo_variante": "tortuguero",
     "descripcion": "Canales navegables conocidos como el Amazonas tico.",
     "descripcion_en": "Navigable canals known as the Tico Amazon.",
     "ubicacion": "Pococí, Limón",
@@ -420,7 +415,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Playa Manuel Antonio",
     "nombre_en": "Manuel Antonio Beach",
     "categoria": "PLAYA",
-    "grupo_variante": "manuel_antonio",
     "descripcion": "Arena blanca y selva tropical con abundante fauna.",
     "descripcion_en": "White sand and tropical jungle with abundant fauna.",
     "ubicacion": "Quepos, Puntarenas",
@@ -531,7 +525,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Playa Manzanillo",
     "nombre_en": "Manzanillo Beach",
     "categoria": "PLAYA",
-    "grupo_variante": "manzanillo",
     "descripcion": "Refugio silvestre con arrecifes y playas vírgenes.",
     "descripcion_en": "Wild refuge with reefs and virgin beaches.",
     "ubicacion": "Talamanca, Limón",
@@ -543,7 +536,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Playa Tortuguero",
     "nombre_en": "Tortuguero Beach",
     "categoria": "PLAYA",
-    "grupo_variante": "tortuguero",
     "descripcion": "Principal sitio de anidación de la tortuga verde.",
     "descripcion_en": "Main nesting site for the green turtle.",
     "ubicacion": "Pococí, Limón",
@@ -1083,7 +1075,6 @@ export const mockLugares: Lugar[] = [
     "nombre": "Manzanillo",
     "nombre_en": "Manzanillo",
     "categoria": "BOSQUES_RESERVAS",
-    "grupo_variante": "manzanillo",
     "descripcion": "Paraíso caribeño con exuberante selva y arrecifes.",
     "descripcion_en": "Caribbean paradise with lush jungle and reefs.",
     "ubicacion": "Talamanca, Limón",

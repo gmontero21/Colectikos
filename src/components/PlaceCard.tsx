@@ -36,7 +36,7 @@ const getProvinceImage = (provinceId: string, progressPercentage: number) => {
 
 export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedState, progressPercentage, rotationClass = '' }: PlaceCardProps) {
   const dict = useDictionary();
-  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate, estampillas } = (useProgress() as any);
+  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate, estampillas, hasReceivedBonusToday } = (useProgress() as any);
 
   const currentDetails = placeDetails[lugar.id] || { date: '', note: '' };
   const isInBucketList = bucketList?.includes(lugar.id);
@@ -207,14 +207,7 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
             className="object-cover object-top text-transparent transition-transform duration-700 group-hover:scale-105" 
           />
           
-          {/* Stamp of Conquest */}
-          <div className="absolute bottom-3 right-3 z-20 opacity-90 group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
-            <div className={`w-14 h-14 border-[3px] rounded-full flex flex-col items-center justify-center rotate-12 shadow-md backdrop-blur-sm ${badgeColor}`}>
-              <CheckCircle2 size={20} className="drop-shadow-md" />
-              <span className="text-[8px] font-extrabold uppercase mt-0.5 drop-shadow-md text-center leading-none">{dict?.placeCard?.conquered || 'Visitado'}</span>
-            </div>
-          </div>
-          
+
           {/* Information Overlay on Hover/Tap */}
           <div 
             className={`absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/95 to-stone-900/40 transition-all duration-500 z-10 flex flex-col justify-end sm:pointer-events-auto sm:group-hover:opacity-100 ${isMobileExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
@@ -442,7 +435,7 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
             </button>
           )}
 
-          {!isDerivedState && estampillas === 0 && (
+          {!isDerivedState && estampillas === 0 && !hasReceivedBonusToday && (
             <div className="mt-2 sm:mt-3 bg-stone-800/80 p-2.5 sm:p-3 rounded-lg border border-stone-600/50 backdrop-blur-md flex flex-col items-center text-center shadow-lg">
               <p className="text-stone-200 text-[9px] sm:text-xs leading-snug mb-2 font-medium">
                 {dict?.categories?.ALL === 'All' 
