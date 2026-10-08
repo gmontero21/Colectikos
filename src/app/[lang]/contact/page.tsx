@@ -98,7 +98,7 @@ export default function ContactPage() {
                     value={formData.nombre}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 text-stone-900 font-medium transition-colors"
                     placeholder={t?.fullNamePlaceholder}
                   />
                 </div>
@@ -120,7 +120,7 @@ export default function ContactPage() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 text-stone-900 font-medium transition-colors"
                       placeholder={t?.emailPlaceholder}
                     />
                   </div>
@@ -140,7 +140,7 @@ export default function ContactPage() {
                       name="telefono"
                       value={formData.telefono}
                       onChange={handleChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 text-stone-900 font-medium transition-colors"
                       placeholder={t?.phonePlaceholder}
                     />
                   </div>
@@ -160,7 +160,7 @@ export default function ContactPage() {
                     name="motivo"
                     value={formData.motivo}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-10 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 appearance-none transition-colors"
+                    className="block w-full pl-10 pr-10 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 appearance-none text-stone-900 font-medium transition-colors"
                   >
                     <option value={t?.reasonGeneral}>{t?.reasonGeneral}</option>
                     <option value={t?.reasonBusiness}>{t?.reasonBusiness}</option>
@@ -184,7 +184,7 @@ export default function ContactPage() {
                     value={formData.comentarios}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 transition-colors"
+                    className="block w-full pl-10 pr-3 py-3 border border-stone-300 rounded-xl focus:ring-emerald-500 focus:border-emerald-500 bg-stone-50 text-stone-900 font-medium transition-colors"
                     placeholder={t?.commentsPlaceholder}
                   />
                 </div>

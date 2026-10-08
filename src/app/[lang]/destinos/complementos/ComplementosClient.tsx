@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useDictionary } from '../../../../context/DictionaryContext';
 import SponsorCard from '../../../../components/SponsorCard';
+import { ChevronDown } from 'lucide-react';
 
 export default function ComplementosClient({ sponsors }: { sponsors: any[] }) {
   const dict = useDictionary();
@@ -61,58 +62,44 @@ export default function ComplementosClient({ sponsors }: { sponsors: any[] }) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Provincias */}
-        <div className="mb-6">
-          <h3 className="text-base md:text-lg font-bold text-stone-700 tracking-tight mb-3">
-            {lang === 'en' ? 'Filter by Province' : 'Filtra por Provincia'}
-          </h3>
-          <div className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible md:whitespace-normal pb-4 pt-2 scrollbar-hide whitespace-nowrap mb-2 px-1">
-            {provinces.map((prov) => {
-              const isActive = activeProvince === prov.id;
-              return (
-                <button
-                  key={prov.id || 'all'}
-                  onClick={() => setActiveProvince(prov.id)}
-                  className={`
-                    px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-sm border
-                    ${isActive
-                      ? 'bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-200 ring-offset-1'
-                      : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-100 hover:border-emerald-300'
-                    }
-                  `}
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1 block">
+                {lang === 'en' ? "Province" : "Provincia"}
+              </label>
+              <div className="relative">
+                <select 
+                  value={activeProvince || 'Todas'} 
+                  onChange={(e) => setActiveProvince(e.target.value === 'Todas' ? null : e.target.value)}
+                  className="w-full appearance-none bg-stone-50 border border-stone-200 text-stone-700 py-2.5 px-4 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 >
-                  {prov.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Categorías */}
-        <div className="mb-8">
-          <h3 className="text-base md:text-lg font-bold text-stone-700 tracking-tight mb-3">
-            {lang === 'en' ? 'Filter by Category' : 'Filtra por Categoría'}
-          </h3>
-          <div className="flex gap-3 overflow-x-auto md:flex-wrap md:overflow-visible md:whitespace-normal pb-4 pt-2 scrollbar-hide whitespace-nowrap mb-2 px-1">
-            {categories.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`
-                    flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-200 ease-in-out border
-                    ${isActive 
-                      ? 'bg-emerald-700 text-white border-emerald-700 shadow-md transform scale-105 cursor-default' 
-                      : 'bg-white text-stone-600 border-stone-200 hover:bg-zinc-100 hover:border-emerald-200 hover:-translate-y-1 hover:shadow-md'
-                    }
-                  `}
+                  {provinces.map((prov) => (
+                    <option key={prov.id || 'Todas'} value={prov.id || 'Todas'}>{prov.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" size={18} />
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1 block">
+                {lang === 'en' ? "Category" : "Categoría"}
+              </label>
+              <div className="relative">
+                <select 
+                  value={activeCategory} 
+                  onChange={(e) => setActiveCategory(e.target.value)}
+                  className="w-full appearance-none bg-stone-50 border border-stone-200 text-stone-700 py-2.5 px-4 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                 >
-                  <span className="text-lg md:text-xl">{cat.icon}</span>
-                  {cat.label}
-                </button>
-              );
-            })}
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" size={18} />
+              </div>
+            </div>
           </div>
         </div>
 
