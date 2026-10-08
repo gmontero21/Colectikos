@@ -45,12 +45,22 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
   const isInBucketList = bucketList?.includes(lugar.id);
   const [isMemoriesOpen, setIsMemoriesOpen] = useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
-  const [rating, setRating] = useState<number>(0);
   
   // Extraer el communityRating del contexto global (ya fue pre-cargado)
-  // @ts-ignore - En caso de que communityRatings no exista temporalmente en la interface (aunque ya lo agregamos)
+  // @ts-ignore
   const allRatings = (useProgress() as any).communityRatings || {};
   const communityRating = allRatings[lugar.id] !== undefined ? allRatings[lugar.id] : null;
+
+  const userRatingsMap = (useProgress() as any).userRatings || {};
+  const initialUserRating = userRatingsMap[lugar.id] || 0;
+
+  const [rating, setRating] = useState<number>(initialUserRating);
+
+  useEffect(() => {
+    if (userRatingsMap[lugar.id] !== undefined) {
+      setRating(userRatingsMap[lugar.id]);
+    }
+  }, [userRatingsMap, lugar.id]);
 
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);

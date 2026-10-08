@@ -12,7 +12,7 @@ import { getAllCommunityRatings } from '../actions/ratings';
 import { checkInAndAwardXP, rateAndAwardXP, getUserGamification, recordDailyLogin } from '../actions/gamification';
 import { toast as sonnerToast } from 'sonner';
 import { useUser } from '@clerk/nextjs';
-import { updateUserProgressNote, getUserProgress, removeUserProgress } from '../actions/progress';
+import { updateUserProgressNote, getUserProgress, removeUserProgress, updateUserBucketList } from '../actions/progress';
 import { getUserProfile } from '../actions/user';
 import { isSameCRDay } from '../lib/dateUtils';
 interface ProgressContextType {
@@ -25,6 +25,7 @@ interface ProgressContextType {
   bucketList: string[];
   toggleBucketList: (id: string) => void;
   communityRatings: Record<string, number>;
+  userRatings: Record<string, number>;
   xp: number;
   level: number;
   currentStreak: number;
@@ -47,6 +48,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [unlockModes, setUnlockModes] = useState<Record<string, string>>({});
   const [bucketList, setBucketList] = useState<string[]>([]);
   const [communityRatings, setCommunityRatings] = useState<Record<string, number>>({});
+  const [userRatings, setUserRatings] = useState<Record<string, number>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newRankTitle, setNewRankTitle] = useState('');
@@ -158,6 +160,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         if (savedUnlockModes) {
           setUnlockModes(JSON.parse(savedUnlockModes));
         }
+        const savedUserRatings = localStorage.getItem('tico100_user_ratings');
+        if (savedUserRatings) {
+          setUserRatings(JSON.parse(savedUserRatings));
+        }
       } catch (e) {
         console.error("Error accessing localStorage", e);
       }
@@ -197,6 +203,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
               setHasRefundedTicketToday(true);
             }
           }
+          if (gamificationData.bucketList) {
+            setBucketList(gamificationData.bucketList);
+          }
         }
       } catch (e) {
         console.error("Error fetching gamification data", e);
@@ -220,6 +229,14 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
           setCompletedPlaces(dbCompleted);
           setPlaceDetails(dbDetails);
+
+          if (progressRes.userRatings) {
+            const parsedRatings: Record<string, number> = {};
+            progressRes.userRatings.forEach((ur: any) => {
+              parsedRatings[ur.placeId] = ur.score;
+            });
+            setUserRatings(parsedRatings);
+          }
         }
       } catch (e) {
         console.error("Error fetching progress from db", e);
@@ -305,20 +322,42 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('tico100_place_details', JSON.stringify(placeDetails));
       localStorage.setItem('tico100_bucket_list', JSON.stringify(bucketList));
       localStorage.setItem('tico100_unlock_modes', JSON.stringify(unlockModes));
+      localStorage.setItem('tico100_user_ratings', JSON.stringify(userRatings));
     }
-  }, [completedPlaces, placeDetails, bucketList, unlockModes, isLoaded]);
+  }, [completedPlaces, placeDetails, bucketList, unlockModes, userRatings, isLoaded]);
 
-  const toggleBucketList = (id: string) => {
-    setBucketList(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(placeId => placeId !== id);
-      }
-      if (prev.length >= 4) {
+  const toggleBucketList = async (id: string) => {
+    let newList = [...bucketList];
+    
+    if (newList.includes(id)) {
+      newList = newList.filter(placeId => placeId !== id);
+    } else {
+      if (newList.length >= 4) {
         toast.error(dict?.toast?.bucketListLimit || 'Solo puedes tener 4 próximos destinos en tu lista. Desmarca uno para agregar este.', { id: 'bucket-limit' });
-        return prev;
+        return;
       }
-      return [...prev, id];
-    });
+      newList.push(id);
+    }
+    
+    setBucketList(newList);
+
+    try {
+      let localUsername = user?.username || undefined;
+      const profileData = localStorage.getItem('userProfileData');
+      if (profileData) {
+        try {
+          const parsed = JSON.parse(profileData);
+          if (parsed.username) localUsername = parsed.username;
+        } catch (e) {}
+      }
+      if (!localUsername) {
+        localUsername = localStorage.getItem('localUsername') || undefined;
+      }
+
+      await updateUserBucketList(newList, localUsername, user?.id);
+    } catch (e) {
+      console.error("Error saving bucket list to backend", e);
+    }
   };
 
   const handleCheckInWithMode = async (id: string, mode: string) => {
@@ -344,6 +383,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       const res = rawRes as any;
       
       if (res.success && 'xpAwarded' in res) {
+        setUserRatings(prev => ({ ...prev, [id]: score }));
         if (res.bonusAwarded) {
           setEstampillas(prev => prev + 1);
           setHasReceivedBonusToday(true);
@@ -562,7 +602,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         localUsername = localStorage.getItem('localUsername') || undefined;
       }
       
-      const res = await updateUserProgressNote(id, note, localUsername, user?.id);
+      const res = await updateUserProgressNote(id, note, date, localUsername, user?.id);
 
       if (!res.success) {
         console.error('Error al persistir la bitácora en la BD', res.error);
@@ -573,7 +613,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, hasReceivedBonusToday, hasRefundedTicketToday, handleRate, userProfile, showTour, setShowTour }}>
+    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, userRatings, xp, level, currentStreak, estampillas, hasReceivedBonusToday, hasRefundedTicketToday, handleRate, userProfile, showTour, setShowTour }}>
       {children}
       {showOnboarding && <OnboardingModal onCompleted={() => setShowOnboarding(false)} />}
       <LevelUpModal 

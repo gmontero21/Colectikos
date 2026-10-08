@@ -39,6 +39,7 @@ model User {
   ultimaFechaEstampillas DateTime        @default(now())
   fechaBonoTicket        DateTime?
   fechaDevolucionTicket  DateTime?
+  bucketList             String[]        @default([])
   ratings                Rating[]
   actionLogs             UserActionLog[]
   progress               UserProgress[]

@@ -4,7 +4,7 @@ import prisma from '../lib/prisma';
 import { isSameCRDay } from '../lib/dateUtils';
 import { ensureDbUser } from './gamification';
 
-export async function updateUserProgressNote(lugarId: string, note: string, localUsername?: string, fallbackClerkId?: string) {
+export async function updateUserProgressNote(lugarId: string, note: string, dateStr?: string, localUsername?: string, fallbackClerkId?: string) {
   try {
     const user = await ensureDbUser(localUsername, fallbackClerkId);
     if (!user) {
@@ -20,12 +20,14 @@ export async function updateUserProgressNote(lugarId: string, note: string, loca
       },
       update: {
         notas: note,
+        ...(dateStr && { fechaCompletado: new Date(dateStr) })
       },
       create: {
         userId: user.id,
         lugarId: lugarId,
         notas: note,
         completado: true,
+        ...(dateStr && { fechaCompletado: new Date(dateStr) })
       }
     });
 
@@ -45,7 +47,12 @@ export async function getUserProgress(localUsername?: string, fallbackClerkId?: 
       where: { userId: user.id }
     });
     
-    return { success: true, checkins };
+    const userRatings = await prisma.rating.findMany({
+      where: { userId: user.id },
+      select: { placeId: true, score: true }
+    });
+    
+    return { success: true, checkins, userRatings };
   } catch (error) {
     console.error("Error fetching progress:", error);
     return { success: false, error: 'Internal server error' };
@@ -120,6 +127,25 @@ export async function removeUserProgress(lugarId: string, localUsername?: string
     return { success: true, refundedTicket, newTotalXp, newLevel };
   } catch (error) {
     console.error("Error removing progress:", error);
+    return { success: false, error: 'Internal server error' };
+  }
+}
+
+export async function updateUserBucketList(bucketList: string[], localUsername?: string, fallbackClerkId?: string) {
+  try {
+    const user = await ensureDbUser(localUsername, fallbackClerkId);
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { bucketList: bucketList }
+    });
+
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error("Error updating bucket list:", error);
     return { success: false, error: 'Internal server error' };
   }
 }
