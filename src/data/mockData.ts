@@ -1,4 +1,4 @@
-export type CategoriaLugar = 'PROVINCIA' | 'VOLCAN' | 'PARQUE_NACIONAL' | 'PLAYA' | 'RIOS_Y_CATARATAS' | 'LAGUNAS' | 'MONTAÑA' | 'CASCADA' | 'RESERVA' | 'MUSEO' | 'HITOS_CULTURALES';
+export type CategoriaLugar = 'PROVINCIA' | 'VOLCAN' | 'PARQUE_NACIONAL' | 'PLAYA' | 'RIOS_Y_CATARATAS' | 'LAGUNAS' | 'HITOS_CULTURALES' | 'BOSQUES_RESERVAS' | 'CIUDAD_Y_CULTURA';
 export type Categoria = CategoriaLugar;
 
 export interface Lugar {
