@@ -168,7 +168,12 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
 
   if (isCompleted) {
     return (
-      <div ref={cardRef} id={`lugar-${lugar.id}`} className={`bg-white p-1.5 sm:p-2.5 pb-1 sm:pb-2 rounded-sm shadow-lg border-2 ${borderClass} flex flex-col group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative ${rotationClass} hover:rotate-0 hover:scale-105 hover:z-10`}>
+      <div 
+        ref={cardRef} 
+        id={`lugar-${lugar.id}`} 
+        className={`bg-white p-1.5 sm:p-2.5 pb-1 sm:pb-2 rounded-sm shadow-lg border-2 ${borderClass} flex flex-col group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative ${rotationClass} hover:rotate-0 hover:scale-105 hover:z-10 cursor-pointer`}
+        onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+      >
         
         {/* Remove Button Badge */}
         {!isDerivedState && (
@@ -195,7 +200,6 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
 
         <div 
           className="relative aspect-[3/4] w-full overflow-hidden bg-stone-100 border-2 border-stone-100 flex flex-col shrink-0"
-          onClick={() => setIsMobileExpanded(!isMobileExpanded)}
         >
           
           <Image 
@@ -209,8 +213,11 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
 
           {/* Information Overlay on Hover/Tap */}
           <div 
-            className={`absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/95 to-stone-900/40 transition-all duration-500 z-10 flex flex-col justify-end sm:pointer-events-auto sm:group-hover:opacity-100 ${isMobileExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-            onClick={(e) => e.stopPropagation()}
+            className={`absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/95 to-stone-900/40 transition-all duration-500 z-10 flex flex-col justify-end sm:pointer-events-auto sm:group-hover:opacity-100 ${isMobileExpanded ? 'opacity-100 pointer-events-auto cursor-pointer' : 'opacity-0 pointer-events-none'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMemoriesOpen(true);
+            }}
           >
             <div className={`transform transition-transform duration-500 ease-out p-4 md:p-5 overflow-y-auto max-h-full w-full [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full sm:group-hover:translate-y-0 ${isMobileExpanded ? 'translate-y-0' : 'translate-y-8'}`}>
               {/* Mobile Close Area Hint */}
