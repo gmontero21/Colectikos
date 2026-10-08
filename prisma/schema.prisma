@@ -38,6 +38,7 @@ model User {
   estampillasDisponibles Int             @default(3)
   ultimaFechaEstampillas DateTime        @default(now())
   fechaBonoTicket        DateTime?
+  fechaDevolucionTicket  DateTime?
   ratings                Rating[]
   actionLogs             UserActionLog[]
   progress               UserProgress[]

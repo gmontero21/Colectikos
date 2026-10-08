@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useDictionary } from '../context/DictionaryContext';
 import { useProgress } from '../context/ProgressContext';
 import { Lugar } from '../data/mockData';
@@ -9,7 +10,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import UnlockModal from './UnlockModal';
+import MemoriesModal from './MemoriesModal';
 import SwapPuzzle from './SwapPuzzle';
+import ConfirmRemoveModal from './ConfirmRemoveModal';
 import { solvePuzzleAndAwardXP } from '../actions/gamification';
 
 interface PlaceCardProps {
@@ -36,13 +39,12 @@ const getProvinceImage = (provinceId: string, progressPercentage: number) => {
 
 export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedState, progressPercentage, rotationClass = '' }: PlaceCardProps) {
   const dict = useDictionary();
-  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate, estampillas, hasReceivedBonusToday } = (useProgress() as any);
+  const { placeDetails, updatePlaceDetails, bucketList, toggleBucketList, unlockModes, handleCheckInWithMode, handleRate, estampillas, hasReceivedBonusToday, hasRefundedTicketToday } = (useProgress() as any);
 
   const currentDetails = placeDetails[lugar.id] || { date: '', note: '' };
   const isInBucketList = bucketList?.includes(lugar.id);
-  const [isEditingNote, setIsEditingNote] = useState(false);
-  const [draftNote, setDraftNote] = useState(currentDetails.note);
-  const [draftDate, setDraftDate] = useState(currentDetails.date);
+  const [isMemoriesOpen, setIsMemoriesOpen] = useState(false);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [rating, setRating] = useState<number>(0);
   
   // Extraer el communityRating del contexto global (ya fue pre-cargado)
@@ -70,20 +72,7 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
     }
   };
   
-  useEffect(() => {
-    if (!isEditingNote) {
-      setDraftNote(currentDetails.note);
-      setDraftDate(currentDetails.date);
-    }
-  }, [currentDetails, isEditingNote]);
 
-
-
-  const handleSaveNote = () => {
-    updatePlaceDetails(lugar.id, draftDate, draftNote);
-    setIsEditingNote(false);
-    toast.success(dict?.placeCard?.savedSuccessfully || '¡Guardado!');
-  };
 
   const isEnglish = dict?.categories?.ALL === 'All';
   const nameToUse = isEnglish && lugar.nombre_en ? lugar.nombre_en : lugar.nombre;
@@ -177,7 +166,7 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onCheckIn(lugar.id);
+              setIsRemoveModalOpen(true);
             }}
             className={`absolute -top-2 -right-2 z-40 flex items-center justify-center w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md transition-all hover:scale-110 border-2 border-white sm:pointer-events-auto sm:group-hover:opacity-100 ${isMobileExpanded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             title={dict?.placeCard?.removeFromAlbum || 'Quitar del Álbum'}
@@ -236,88 +225,23 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
                 "{descToUse}"
               </p>
               
-              {/* Simulated Traveler Note */}
-              <div className="bg-white/10 p-3 rounded mb-3 border-l-2 border-emerald-400 relative">
-                <div className="text-stone-400 text-[9px] uppercase font-bold tracking-widest mb-2 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5"><BookOpen size={10} /> {dict?.placeCard?.albumNotes || 'Notas del Álbum'}</span>
-                  {!isEditingNote && (currentDetails.note || currentDetails.date) && (
-                    <button onClick={() => setIsEditingNote(true)} className="text-emerald-400 hover:text-emerald-300 text-[9px]">{dict?.placeCard?.edit || 'Editar'}</button>
-                  )}
-                </div>
-                
-                {isEditingNote ? (
-                  <div className="flex flex-col gap-2">
-                    <input 
-                      type="date" 
-                      value={draftDate} 
-                      onChange={(e) => setDraftDate(e.target.value)}
-                      className="bg-stone-900/50 border border-stone-600 rounded px-2 py-1 text-xs text-stone-200 outline-none focus:border-emerald-500 w-full [color-scheme:dark]"
-                      title={dict?.placeCard?.visitDate || 'Fecha de visita'}
-                    />
-                    <textarea 
-                      value={draftNote}
-                      onChange={(e) => setDraftNote(e.target.value)}
-                      placeholder={dict?.placeCard?.myNotes || 'Mis recuerdos...'}
-                      className="bg-stone-900/50 border border-stone-600 rounded px-2 py-1 text-xs text-stone-200 outline-none focus:border-emerald-500 w-full min-h-[60px] resize-none"
-                    />
-                    <div className="flex justify-end gap-2 mt-1">
-                      <button onClick={() => setIsEditingNote(false)} className="text-stone-400 hover:text-stone-300 text-[10px] px-2 py-1">Cancelar</button>
-                      <button onClick={handleSaveNote} className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-3 py-1 rounded font-bold">{dict?.placeCard?.save || 'Guardar'}</button>
-                    </div>
-                  </div>
-                ) : (currentDetails.note || currentDetails.date) ? (
-                  <div className="text-stone-200 text-xs italic font-serif">
-                    {currentDetails.date && <p className="text-emerald-300/80 mb-1 text-[10px] font-sans not-italic font-bold">{currentDetails.date}</p>}
-                    <p>{currentDetails.note}</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-start gap-2">
-                    <p className="text-stone-300/70 text-xs italic font-serif">{dict?.placeCard?.albumNotesDesc || 'Un destino increíble...'}</p>
-                    <button onClick={() => setIsEditingNote(true)} className="text-emerald-400 hover:text-emerald-300 text-[10px] border border-emerald-400/30 px-2 py-0.5 rounded flex items-center gap-1">+ {dict?.placeCard?.addMemory || 'Añadir recuerdo'}</button>
-                  </div>
-                )}
+              <div className="mt-4 mb-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMemoriesOpen(true);
+                  }}
+                  className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-2.5 rounded-lg font-bold shadow-sm transition-all text-sm flex items-center justify-center gap-2"
+                >
+                  <BookOpen size={16} />
+                  {dict?.placeCard?.albumNotes || 'Mis Notas'}
+                </button>
               </div>
-              {/* Rating Section */}
-              {!isProv && (
-                <div className="bg-white/5 p-3 rounded mb-3 border border-white/10">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-stone-300 text-[10px] font-bold uppercase tracking-wider">{dict?.placeCard?.my_rating || 'Mi calificación:'}</span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={async (e) => { 
-                            e.stopPropagation(); 
-                            const newRating = rating === star ? 0 : star;
-                            setRating(newRating); 
-                            if (newRating > 0 && handleRate) {
-                              await handleRate(lugar.id, newRating);
-                            }
-                          }}
-                          className="transition-transform hover:scale-110 focus:outline-none relative z-20 p-1 -m-1"
-                          title={dict?.placeCard?.[`rating_${star}` as keyof typeof dict.placeCard]}
-                        >
-                          <PawPrint 
-                            size={16} 
-                            className={`pointer-events-none ${star <= rating ? "text-emerald-500 fill-emerald-500" : "text-stone-500"}`} 
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {rating > 0 && (
-                    <p className="text-xs text-stone-500 text-right">
-                      {dict?.placeCard?.[`rating_${rating}` as keyof typeof dict.placeCard]}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
         {communityRatingBlock}
-      {isPuzzleOpen && (
+      {isPuzzleOpen && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-3 sm:p-4 bg-stone-900/80 backdrop-blur-md" onClick={() => setIsPuzzleOpen(false)}>
           <div className="bg-white rounded-[2rem] shadow-2xl p-5 sm:p-6 w-full max-w-sm max-h-[95vh] overflow-y-auto relative flex flex-col" onClick={(e) => e.stopPropagation()}>
             <button 
@@ -351,8 +275,26 @@ export default function PlaceCard({ lugar, isCompleted, onCheckIn, isDerivedStat
               }}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+      <MemoriesModal 
+        isOpen={isMemoriesOpen} 
+        onClose={() => setIsMemoriesOpen(false)} 
+        lugar={lugar}
+        isProv={isProv}
+        currentDetails={currentDetails}
+        updatePlaceDetails={updatePlaceDetails}
+        handleRate={handleRate}
+        rating={rating}
+      />
+      <ConfirmRemoveModal
+        isOpen={isRemoveModalOpen}
+        onClose={() => setIsRemoveModalOpen(false)}
+        onConfirm={() => onCheckIn(lugar.id)}
+        canRefundTicket={!hasRefundedTicketToday}
+        isSpanish={dict?.categories?.ALL !== 'All'}
+      />
       </div>
     );
   }

@@ -292,17 +292,18 @@ export async function getUserGamification(localUsername?: string, fallbackClerkI
     if (!dbUser) return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true, fechaBonoTicket: null };
 
     const activeUser = await checkAndResetStamps(dbUser.id);
-    if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0, fechaBonoTicket: dbUser.fechaBonoTicket };
+    if (!activeUser) return { xp: dbUser.xp, level: dbUser.level, estampillas: 0, fechaBonoTicket: dbUser.fechaBonoTicket, fechaDevolucionTicket: dbUser.fechaDevolucionTicket };
 
     return { 
       xp: activeUser.xp, 
       level: activeUser.level, 
       estampillas: activeUser.estampillasDisponibles,
       onboardingCompleted: activeUser.onboardingCompleted,
-      fechaBonoTicket: activeUser.fechaBonoTicket
+      fechaBonoTicket: activeUser.fechaBonoTicket,
+      fechaDevolucionTicket: activeUser.fechaDevolucionTicket
     };
   } catch (error) {
-    return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true, fechaBonoTicket: null };
+    return { xp: 0, level: 1, estampillas: 0, onboardingCompleted: true, fechaBonoTicket: null, fechaDevolucionTicket: null };
   }
 }
 

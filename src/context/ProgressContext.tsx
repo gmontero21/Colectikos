@@ -29,6 +29,7 @@ interface ProgressContextType {
   currentStreak: number;
   estampillas: number;
   hasReceivedBonusToday: boolean;
+  hasRefundedTicketToday: boolean;
   handleRate: (id: string, score: number) => Promise<void>;
   userProfile: any;
   showTour: boolean;
@@ -59,6 +60,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [estampillas, setEstampillas] = useState(3);
   const [hasReceivedBonusToday, setHasReceivedBonusToday] = useState(false);
+  const [hasRefundedTicketToday, setHasRefundedTicketToday] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [showTour, setShowTour] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -187,6 +189,15 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
                 lastBonus.getMonth() === now.getMonth() && 
                 lastBonus.getDate() === now.getDate()) {
               setHasReceivedBonusToday(true);
+            }
+          }
+          if (gamificationData.fechaDevolucionTicket) {
+            const lastRefund = new Date(gamificationData.fechaDevolucionTicket);
+            const now = new Date();
+            if (lastRefund.getFullYear() === now.getFullYear() && 
+                lastRefund.getMonth() === now.getMonth() && 
+                lastRefund.getDate() === now.getDate()) {
+              setHasRefundedTicketToday(true);
             }
           }
         }
@@ -387,7 +398,19 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
             if (parsed.username) localUsername = parsed.username;
           } catch (e) {}
         }
-        await removeUserProgress(id, localUsername, user?.id);
+        const res = await removeUserProgress(id, localUsername, user?.id);
+        if (res.success) {
+          if (res.refundedTicket) {
+            setHasRefundedTicketToday(true);
+            setEstampillas(e => e + 1);
+          }
+          if (res.newTotalXp !== undefined) {
+            setXp(res.newTotalXp);
+          }
+          if (res.newLevel !== undefined) {
+            setLevel(res.newLevel);
+          }
+        }
       } catch (e) {
         console.error("Error removing progress", e);
       }
@@ -553,7 +576,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, hasReceivedBonusToday, handleRate, userProfile, showTour, setShowTour }}>
+    <ProgressContext.Provider value={{ completedPlaces, placeDetails, unlockModes, bucketList, handleCheckIn, handleCheckInWithMode, updatePlaceDetails, toggleBucketList, communityRatings, xp, level, currentStreak, estampillas, hasReceivedBonusToday, hasRefundedTicketToday, handleRate, userProfile, showTour, setShowTour }}>
       {children}
       {showOnboarding && <OnboardingModal onCompleted={() => setShowOnboarding(false)} />}
       <LevelUpModal 
